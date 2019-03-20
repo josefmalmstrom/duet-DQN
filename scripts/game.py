@@ -1,15 +1,18 @@
 import turtle
 from ball import Ball
+from obstacle_manager import ObstacleManager
 
 
 BOARD_HEIGHT = 750
 BOARD_WIDTH = 550
 
-BALL_DIAMETER = 10   # size of red/blue balls
+BALL_DIAMETER = 10   # size of player balls
 CIRCLE_RADIUS = 100   # distance between the balls
 
 # distance from balls to bottom of board
-DIST_TO_BOTTOM = CIRCLE_RADIUS + 10
+DIST_TO_BOTTOM = CIRCLE_RADIUS + 15
+
+SPIN_SPEED = 5  # spinning speed of player balls
 
 
 class DuetGame(object):
@@ -22,6 +25,8 @@ class DuetGame(object):
 
         self.init_game_board()
         self.init_balls()
+
+        self.last_keypress = "Left"
 
     def init_game_board(self):
         """
@@ -86,24 +91,34 @@ class DuetGame(object):
         Spins the balls counterclockwise.
         """
 
-        self.blue_ball.circle(CIRCLE_RADIUS, 1)
-        self.red_ball.circle(CIRCLE_RADIUS, 1)
+        if self.last_keypress == "Right":
+            self.blue_ball.left(180)
+            self.red_ball.left(180)
+            self.last_keypress = "Left"
+
+        self.blue_ball.circle(CIRCLE_RADIUS, SPIN_SPEED)
+        self.red_ball.circle(CIRCLE_RADIUS, SPIN_SPEED)
 
     def spin_right(self):
         """
         Spins the balls clockwise.
         """
 
-        self.blue_ball.circle(CIRCLE_RADIUS, 1)
-        self.red_ball.circle(CIRCLE_RADIUS, 1)
+        if self.last_keypress == "Left":
+            self.blue_ball.left(180)
+            self.red_ball.left(180)
+            self.last_keypress = "Right"
+
+        self.blue_ball.circle(-CIRCLE_RADIUS, SPIN_SPEED)
+        self.red_ball.circle(-CIRCLE_RADIUS, SPIN_SPEED)
 
     def main_game_loop(self):
 
-        while True:
+        turtle.listen()
+        turtle.onkeypress(self.spin_left, "Left")
+        turtle.onkeypress(self.spin_right, "Right")
 
-            self.screen.onkey(self.spin_left, "Left")
-            self.screen.onkey(self.spin_right, "Right")
-            self.screen.listen()
+        input("Press any key to quit >> ")
 
 
 def main():
