@@ -14,6 +14,8 @@ CIRCLE_WIDTH = 1  # width or grey circle
 DIST_TO_BOTTOM = CIRCLE_RADIUS + 15  # dist from ball to bottom of screen
 SPIN_STEP = 0.02  # angular step of player balls in radians
 
+NEW_OBS_INTERVAL = 200
+
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -31,15 +33,9 @@ class DuetGame(object):
         self.screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT))
         pygame.display.set_caption("Duet Game")
 
-        self.init_game_board()
         self.init_balls()
-
-    def init_game_board(self):
-        """
-        Draws the game board.
-        """
-
-        pass
+        self.obstacle_manager = ObstacleManager()
+        self.obstacle_manager.new_obstacle()
 
     def init_balls(self):
         """
@@ -77,23 +73,40 @@ class DuetGame(object):
         pygame.draw.circle(self.screen, RED,
                            self.red_ball.position(), BALL_RADIUS)
 
+    def draw_obstacles(self):
+        """
+        Draws all the current obstacles.
+        """
+        for obstacle in self.obstacle_manager:
+            pygame.draw.rect(self.screen, WHITE, obstacle.get_rect())
+
+    def move_obstacles(self):
+        """
+        Moves all obstacles one step.
+        """
+
+        for obstacle in self.obstacle_manager:
+            obstacle.move()
+
     def main_game_loop(self):
         """
         Runs the game.
         """
 
         quit_game = False
+        i = 0
         while not quit_game:
 
             pygame.time.delay(10)
 
+            # Quit the game if player closed the window
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     quit_game = True
                     break
 
+            # Spin the player balls
             keys = pygame.key.get_pressed()
-
             if keys[pygame.K_LEFT]:
 
                 self.blue_ball.spin_left()
@@ -104,10 +117,26 @@ class DuetGame(object):
                 self.blue_ball.spin_right()
                 self.red_ball.spin_right()
 
+            # Move all obstacles downward
+            self.move_obstacles()
+
+            # If an obstacle went out of frame, delete it
+            oldest_obstacle = self.obstacle_manager.oldest_obstacle()
+            if oldest_obstacle.out_of_frame():
+                self.obstacle_manager.remove_obstacle()
+
+            # If it is time, make a new obstacle
+            if i % NEW_OBS_INTERVAL == 0:
+                self.obstacle_manager.new_obstacle()
+
+            # Draw the game
             self.screen.fill(BLACK)
             self.draw_circle()
             self.draw_balls()
+            self.draw_obstacles()
             pygame.display.update()
+
+            i += 1
 
         pygame.quit()
 
