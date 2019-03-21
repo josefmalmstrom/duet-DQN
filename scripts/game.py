@@ -1,124 +1,115 @@
-import turtle
+import pygame
+import numpy as np
+
 from ball import Ball
 from obstacle_manager import ObstacleManager
 
 
-BOARD_HEIGHT = 750
-BOARD_WIDTH = 550
+BOARD_HEIGHT = 960
+BOARD_WIDTH = 540
 
-BALL_DIAMETER = 10   # size of player balls
+BALL_RADIUS = 12   # size of player balls
 CIRCLE_RADIUS = 100   # distance between the balls
+CIRCLE_WIDTH = 1  # width or grey circle
+DIST_TO_BOTTOM = CIRCLE_RADIUS + 15  # dist from ball to bottom of screen
+SPIN_STEP = 0.02  # angular step of player balls in radians
 
-# distance from balls to bottom of board
-DIST_TO_BOTTOM = CIRCLE_RADIUS + 15
-
-SPIN_SPEED = 5  # spinning speed of player balls
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+BLUE = (0, 0, 255)
+RED = (255, 0, 0)
+GREY = (169, 169, 169)
 
 
 class DuetGame(object):
 
     def __init__(self):
 
-        self.screen = turtle.Screen()
-        self.screen.bgcolor("black")
-        self.screen.title("Duet Game")
+        pygame.init()
+
+        self.screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT))
+        pygame.display.set_caption("Duet Game")
 
         self.init_game_board()
         self.init_balls()
-
-        self.last_keypress = "Left"
 
     def init_game_board(self):
         """
         Draws the game board.
         """
 
-        border_pen = turtle.Turtle()
-        border_pen.speed(0)
-        border_pen.color("white")
-        border_pen.penup()
-        border_pen.setposition(-BOARD_WIDTH/2, -BOARD_HEIGHT/2)
-        border_pen.pendown()
-        border_pen.pensize(3)
-        for side in range(2):
-            border_pen.forward(BOARD_WIDTH)
-            border_pen.left(90)
-            border_pen.forward(BOARD_HEIGHT)
-            border_pen.left(90)
-        border_pen.hideturtle()
+        pass
 
     def init_balls(self):
         """
         Initializes the red and blue balls.
         """
 
-        self.blue_ball = turtle.Turtle()
-        self.blue_ball.penup()
-        self.blue_ball.speed(0)
-        self.blue_ball.color("blue")
-        self.blue_ball.shape("circle")
-        self.blue_ball.resizemode("user")
-        self.blue_ball.shapesize(1.3, 1.3)
-        blue_start_pose = (-CIRCLE_RADIUS, -BOARD_HEIGHT/2 + DIST_TO_BOTTOM)
-        self.blue_ball.setposition(*blue_start_pose)
-        self.blue_ball.right(90)
+        # Create blue ball
+        blue_x = BOARD_WIDTH//2 - CIRCLE_RADIUS
+        blue_y = BOARD_HEIGHT - DIST_TO_BOTTOM
+        blue_theta = np.pi
+        self.blue_ball = Ball(blue_x, blue_y, blue_theta,
+                              CIRCLE_RADIUS, SPIN_STEP)
 
-        self.red_ball = turtle.Turtle()
-        self.red_ball.penup()
-        self.red_ball.speed(0)
-        self.red_ball.color("red")
-        self.red_ball.shape("circle")
-        self.red_ball.resizemode("user")
-        self.red_ball.shapesize(1.3, 1.3)
-        red_start_pose = (CIRCLE_RADIUS, -BOARD_HEIGHT/2 + DIST_TO_BOTTOM)
-        self.red_ball.setposition(*red_start_pose)
-        self.red_ball.left(90)
+        # Create red ball
+        red_x = BOARD_WIDTH//2 + CIRCLE_RADIUS
+        red_y = BOARD_HEIGHT - DIST_TO_BOTTOM
+        red_theta = 0
+        self.red_ball = Ball(red_x, red_y, red_theta,
+                             CIRCLE_RADIUS, SPIN_STEP)
 
-        # Draw circle for balls to live on
-        circle_drawer = turtle.Turtle()
-        circle_drawer.penup()
-        circle_drawer.speed(0)
-        circle_drawer.color("gray")
-        bottom_mid_point = (0,
-                            -BOARD_HEIGHT/2 + DIST_TO_BOTTOM - CIRCLE_RADIUS)
-        circle_drawer.setposition(bottom_mid_point)
-        circle_drawer.pendown()
-        circle_drawer.circle(CIRCLE_RADIUS)
-        circle_drawer.hideturtle()
-
-    def spin_left(self):
+    def draw_circle(self):
         """
-        Spins the balls counterclockwise.
+        Draws the gray circle.
         """
+        pygame.draw.circle(self.screen, GREY,
+                           (BOARD_WIDTH//2, BOARD_HEIGHT - DIST_TO_BOTTOM),
+                           CIRCLE_RADIUS, CIRCLE_WIDTH)
 
-        if self.last_keypress == "Right":
-            self.blue_ball.left(180)
-            self.red_ball.left(180)
-            self.last_keypress = "Left"
-
-        self.blue_ball.circle(CIRCLE_RADIUS, SPIN_SPEED)
-        self.red_ball.circle(CIRCLE_RADIUS, SPIN_SPEED)
-
-    def spin_right(self):
+    def draw_balls(self):
         """
-        Spins the balls clockwise.
+        Draws the player balls.
         """
-
-        if self.last_keypress == "Left":
-            self.blue_ball.left(180)
-            self.red_ball.left(180)
-            self.last_keypress = "Right"
-
-        self.blue_ball.circle(-CIRCLE_RADIUS, SPIN_SPEED)
-        self.red_ball.circle(-CIRCLE_RADIUS, SPIN_SPEED)
+        pygame.draw.circle(self.screen, BLUE,
+                           self.blue_ball.position(), BALL_RADIUS)
+        pygame.draw.circle(self.screen, RED,
+                           self.red_ball.position(), BALL_RADIUS)
 
     def main_game_loop(self):
+        """
+        Runs the game.
+        """
 
-        turtle.listen()
-        turtle.onkeypress(self.spin_left, "Left")
-        turtle.onkeypress(self.spin_right, "Right")
+        quit_game = False
+        while not quit_game:
 
-        input("Press any key to quit >> ")
+            pygame.time.delay(10)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quit_game = True
+                    break
+
+            keys = pygame.key.get_pressed()
+
+            if keys[pygame.K_LEFT]:
+
+                self.blue_ball.spin_left()
+                self.red_ball.spin_left()
+
+            elif keys[pygame.K_RIGHT]:
+
+                self.blue_ball.spin_right()
+                self.red_ball.spin_right()
+
+            self.screen.fill(BLACK)
+            self.draw_circle()
+            self.draw_balls()
+            pygame.display.update()
+
+        pygame.quit()
 
 
 def main():

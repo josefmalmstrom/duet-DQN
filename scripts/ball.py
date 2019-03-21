@@ -1,3 +1,4 @@
+import numpy as np
 
 
 class Ball(object):
@@ -5,13 +6,40 @@ class Ball(object):
     Player ball in the Duet game.
     """
 
-    def __init__(self, start_pose):
+    def __init__(self, x, y, theta, r, vel):
+        """
+        Creates a player ball with specified position and velocity.
+        """
 
-        self.x = start_pose(0)
-        self.y = start_pose(1)
+        self.x = x
+        self.y = y
+        self.theta = theta
+
+        self.xc = (self.x - r) if self.theta == 0 else (self.x + r)
+        self.yc = y
+
+        self.ang_vel = vel
+        self.radius = r
+
+    def position(self):
+        return (self.x, self.y)
 
     def spin_left(self):
-        pass
+        """
+        Spins the ball counter-clockwise.
+        """
+        self.theta -= self.ang_vel
+        self.theta = self.theta % (2*np.pi)
+        self.theta = max(2*np.pi + self.theta, self.theta)
+        self.x = self.xc + int(self.radius*np.cos(self.theta))
+        self.y = self.yc + int(self.radius*np.sin(self.theta))
 
     def spin_right(self):
-        pass
+        """
+        Spins the ball clockwise.
+        """
+        self.theta += self.ang_vel
+        self.theta = self.theta % (2*np.pi)
+        self.theta = max(2*np.pi + self.theta, self.theta)
+        self.x = self.xc + int(self.radius*np.cos(self.theta))
+        self.y = self.yc + int(self.radius*np.sin(self.theta))
