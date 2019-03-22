@@ -11,9 +11,9 @@ BOARD_WIDTH = 540
 CIRCLE_RADIUS = 100   # distance between the balls
 CIRCLE_WIDTH = 1  # width or grey circle
 DIST_TO_BOTTOM = CIRCLE_RADIUS + 15  # dist from ball to bottom of screen
-SPIN_STEP = 0.02  # angular step of player balls in radians
+SPIN_STEP = 0.0224  # angular step of player balls in radians
 
-NEW_OBS_INTERVAL = 200
+NEW_OBS_INTERVAL = 140
 
 # Colors
 WHITE = (255, 255, 255)
@@ -187,7 +187,7 @@ class DuetGame(object):
                     break
 
             i += 1
-            i = i % 2000
+            i = i % NEW_OBS_INTERVAL
 
         if game_over:
             quit_game = self.game_over()

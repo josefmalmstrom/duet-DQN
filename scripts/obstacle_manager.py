@@ -1,17 +1,18 @@
 import pygame
+import random
 from enum import Enum
 
 BOARD_HEIGHT = 960
 BOARD_WIDTH = 540
 
-INNER_LEFT_EDGE = BOARD_WIDTH//2 - 70
-INNER_RIGHT_EDGE = BOARD_WIDTH//2 + 70
-
 OBS_HEIGHT = 50
-OBS_VEL = 1
+OBS_VEL = 2
 
-# Types of obstacles (min_x, max_x, max_height)
-MID_COORDS = (200, 340, 80)
+# Types of obstacles
+# (min_left, max_left, min_right, max_right, min_height, max_height)
+MID_COORDS = (195, 235, 308, 345, 70, 70)
+LEFT_COORDS = (35, 35, 270, 270, 70, 70)
+RIGHT_COORDS = (270, 270, 505, 505, 70, 70)
 
 
 class ObstacleManager(object):
@@ -32,19 +33,32 @@ class ObstacleManager(object):
         Generates a new obstacle.
         """
 
-        obs_type = ObstacleType.MID  # TODO
+        obs_type = self.random_obstacle_type()
 
         if obs_type == ObstacleType.MID:
             COORDS = MID_COORDS
+        elif obs_type == ObstacleType.LEFT:
+            COORDS = LEFT_COORDS
+        elif obs_type == ObstacleType.RIGHT:
+            COORDS = RIGHT_COORDS
 
-        spawn_x = COORDS[0]
-        spawn_y = 0 - COORDS[2]
-        width = COORDS[1] - COORDS[0]
-        height = COORDS[2]
+        (min_left, max_left, min_right, max_right,
+         min_height, max_height) = COORDS
+
+        spawn_x = random.randint(min_left, max_left)
+        width = random.randint(min_right, max_right) - spawn_x
+        height = random.randint(min_height, max_height)
+        spawn_y = 0 - height
 
         new_obstacle = Obstacle(spawn_x, spawn_y, width, height)
         self.obstacles.append(new_obstacle)
 
+    def random_obstacle_type(self):
+        """
+        Picks a random obstacle type.
+        """
+        return random.choice(list(ObstacleType))
+        
     def oldest_obstacle(self):
         """
         Returns the oldest obstacle.
@@ -69,14 +83,14 @@ class ObstacleType(Enum):
     Enum for the different types of obstacles.
     """
     MID = 1
+    LEFT = 2
+    RIGHT = 3
 
 
 class Obstacle(object):
     """
     An obstacle in the Duet game.
     """
-
-    count = 1
 
     def __init__(self, x, y, width, height):
 
@@ -90,9 +104,6 @@ class Obstacle(object):
         self.left = self.x
         self.right = self.x + width
 
-        self.id = Obstacle.count
-        Obstacle.count += 1
-
     def move(self):
         """
         Moves the obstacle down, towards the player.
@@ -105,7 +116,7 @@ class Obstacle(object):
         """
         Checks if the obstacle has left the game board.
         """
-        return (self.top - 5 == BOARD_HEIGHT)
+        return (self.top - 5 >= BOARD_HEIGHT)
 
     def get_rect(self):
         """
