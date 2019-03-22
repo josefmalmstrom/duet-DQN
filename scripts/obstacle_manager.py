@@ -8,8 +8,10 @@ INNER_LEFT_EDGE = BOARD_WIDTH//2 - 70
 INNER_RIGHT_EDGE = BOARD_WIDTH//2 + 70
 
 OBS_HEIGHT = 50
-
 OBS_VEL = 1
+
+# Types of obstacles (min_x, max_x, max_height)
+MID_COORDS = (200, 340, 80)
 
 
 class ObstacleManager(object):
@@ -30,13 +32,17 @@ class ObstacleManager(object):
         Generates a new obstacle.
         """
 
-        spawn_x = INNER_LEFT_EDGE
-        spawn_y = 0 - OBS_HEIGHT
-        width = INNER_RIGHT_EDGE - INNER_LEFT_EDGE
-        height = OBS_HEIGHT
-        obs_type = Type.MID
+        obs_type = ObstacleType.MID  # TODO
 
-        new_obstacle = Obstacle(spawn_x, spawn_y, width, height, obs_type)
+        if obs_type == ObstacleType.MID:
+            COORDS = MID_COORDS
+
+        spawn_x = COORDS[0]
+        spawn_y = 0 - COORDS[2]
+        width = COORDS[1] - COORDS[0]
+        height = COORDS[2]
+
+        new_obstacle = Obstacle(spawn_x, spawn_y, width, height)
         self.obstacles.append(new_obstacle)
 
     def oldest_obstacle(self):
@@ -52,7 +58,7 @@ class ObstacleManager(object):
         self.obstacles.pop(0)
 
 
-class Type(Enum):
+class ObstacleType(Enum):
     MID = 1
 
 
@@ -61,7 +67,7 @@ class Obstacle(object):
     An obstacle in the Duet game.
     """
 
-    def __init__(self, x, y, width, height, obs_type):
+    def __init__(self, x, y, width, height):
 
         self.x = x
         self.y = y
@@ -72,8 +78,6 @@ class Obstacle(object):
         self.bottom = self.y - height
         self.left = self.x
         self.right = self.x + width
-
-        self.obs_type = obs_type
 
     def move(self):
         """

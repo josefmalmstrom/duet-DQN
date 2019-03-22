@@ -1,4 +1,7 @@
 import numpy as np
+import pygame
+
+BALL_RADIUS = 12   # size of player balls
 
 
 class Ball(object):
@@ -43,3 +46,16 @@ class Ball(object):
         self.theta = max(2*np.pi + self.theta, self.theta)
         self.x = self.xc + int(self.radius*np.cos(self.theta))
         self.y = self.yc + int(self.radius*np.sin(self.theta))
+
+    def has_collided(self, obstacle):
+        """
+        Checks if the ball has collided with obstacle.
+        """
+        return self.rect.colliderect(obstacle.get_rect())
+
+    def draw(self, screen, color):
+        """
+        Draws the ball.
+        """
+        self.rect = pygame.draw.circle(screen, color,
+                                       self.position(), BALL_RADIUS)

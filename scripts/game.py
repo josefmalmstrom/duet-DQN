@@ -8,7 +8,6 @@ from obstacle_manager import ObstacleManager
 BOARD_HEIGHT = 960
 BOARD_WIDTH = 540
 
-BALL_RADIUS = 12   # size of player balls
 CIRCLE_RADIUS = 100   # distance between the balls
 CIRCLE_WIDTH = 1  # width or grey circle
 DIST_TO_BOTTOM = CIRCLE_RADIUS + 15  # dist from ball to bottom of screen
@@ -68,10 +67,8 @@ class DuetGame(object):
         """
         Draws the player balls.
         """
-        pygame.draw.circle(self.screen, BLUE,
-                           self.blue_ball.position(), BALL_RADIUS)
-        pygame.draw.circle(self.screen, RED,
-                           self.red_ball.position(), BALL_RADIUS)
+        self.blue_ball.draw(self.screen, BLUE)
+        self.red_ball.draw(self.screen, RED)
 
     def draw_obstacles(self):
         """
@@ -79,6 +76,12 @@ class DuetGame(object):
         """
         for obstacle in self.obstacle_manager:
             pygame.draw.rect(self.screen, WHITE, obstacle.get_rect())
+
+    def draw_score(self):
+        """
+        Draws the score in lower left corner.
+        """
+        pass
 
     def move_obstacles(self):
         """
@@ -88,7 +91,7 @@ class DuetGame(object):
         for obstacle in self.obstacle_manager:
             obstacle.move()
 
-    def main_game_loop(self):
+    def game_loop(self):
         """
         Runs the game.
         """
@@ -120,8 +123,9 @@ class DuetGame(object):
             # Move all obstacles downward
             self.move_obstacles()
 
-            # If an obstacle went out of frame, delete it
             oldest_obstacle = self.obstacle_manager.oldest_obstacle()
+
+            # If an obstacle went out of frame, delete it
             if oldest_obstacle.out_of_frame():
                 self.obstacle_manager.remove_obstacle()
 
@@ -134,7 +138,14 @@ class DuetGame(object):
             self.draw_circle()
             self.draw_balls()
             self.draw_obstacles()
+            self.draw_score()
             pygame.display.update()
+
+            # If either ball has collided, quit
+            if self.blue_ball.has_collided(oldest_obstacle):
+                quit_game = True
+            if self.red_ball.has_collided(oldest_obstacle):
+                quit_game = True
 
             i += 1
 
@@ -144,7 +155,7 @@ class DuetGame(object):
 def main():
 
     game = DuetGame()
-    game.main_game_loop()
+    game.game_loop()
 
 
 if __name__ == "__main__":
