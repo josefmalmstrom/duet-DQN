@@ -1,8 +1,10 @@
-import pygame
+import contextlib
+with contextlib.redirect_stdout(None):
+    import pygame
 import numpy as np
 
-from ball import Ball
-from obstacle_manager import ObstacleManager
+from scripts.ball import Ball
+from scripts.obstacle_manager import ObstacleManager
 
 
 BOARD_HEIGHT = 960
