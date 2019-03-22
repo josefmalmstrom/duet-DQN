@@ -51,6 +51,12 @@ class ObstacleManager(object):
         """
         return self.obstacles[0]
 
+    def oldest_out_of_frame(self):
+        """
+        Checks if the oldest obstacle has gone out of frame.
+        """
+        return self.obstacles[0].out_of_frame()
+
     def remove_obstacle(self):
         """
         Removes the oldest obstacle.
@@ -67,6 +73,8 @@ class Obstacle(object):
     An obstacle in the Duet game.
     """
 
+    count = 1
+
     def __init__(self, x, y, width, height):
 
         self.x = x
@@ -79,11 +87,13 @@ class Obstacle(object):
         self.left = self.x
         self.right = self.x + width
 
+        self.id = Obstacle.count
+        Obstacle.count += 1
+
     def move(self):
         """
         Moves the obstacle down, towards the player.
         """
-
         self.y += OBS_VEL
         self.top += OBS_VEL
         self.bottom += OBS_VEL
@@ -92,11 +102,14 @@ class Obstacle(object):
         """
         Checks if the obstacle has left the game board.
         """
-        return (self.top >= BOARD_HEIGHT)
+        return (self.top - 5 == BOARD_HEIGHT)
 
     def get_rect(self):
         """
         Returns the obstacle as a pygame Rect.
         """
-
         return pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def __str__(self):
+
+        return "Object #" + str(self.id)

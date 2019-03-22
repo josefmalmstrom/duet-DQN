@@ -36,6 +36,11 @@ class DuetGame(object):
         self.obstacle_manager = ObstacleManager()
         self.obstacle_manager.new_obstacle()
 
+        pygame.font.init()
+        self.score_font = pygame.font.Font("freesansbold.ttf", 20)
+        self.game_over_font = pygame.font.Font("freesansbold.ttf", 80)
+        self.restart_font = pygame.font.Font("freesansbold.ttf", 20)
+
     def init_balls(self):
         """
         Initializes the red and blue balls.
@@ -77,11 +82,12 @@ class DuetGame(object):
         for obstacle in self.obstacle_manager:
             pygame.draw.rect(self.screen, WHITE, obstacle.get_rect())
 
-    def draw_score(self):
+    def draw_score(self, score):
         """
         Draws the score in lower left corner.
         """
-        pass
+        score_surface = self.score_font.render(str(score), False, WHITE)
+        self.screen.blit(score_surface, (10, BOARD_HEIGHT-25))
 
     def move_obstacles(self):
         """
@@ -91,22 +97,49 @@ class DuetGame(object):
         for obstacle in self.obstacle_manager:
             obstacle.move()
 
-    def game_loop(self):
+    def game_over(self):
         """
-        Runs the game.
+        Display Game Over message, and give choice to restart or exit.
         """
+
+        game_over_surface = self.game_over_font.render("Game Over", False, RED)
+        self.screen.blit(game_over_surface, (50, BOARD_HEIGHT//2))
+        restart_surface = self.restart_font.render(
+            "Press ESC to quit or RETURN to restart", False, RED)
+        self.screen.blit(restart_surface, (80, BOARD_HEIGHT//2 + 80))
+        pygame.display.update()
 
         quit_game = False
-        i = 0
-        while not quit_game:
-
+        restart = False
+        while not (quit_game or restart):
             pygame.time.delay(10)
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_ESCAPE]:
+                quit_game = True
+            elif keys[pygame.K_RETURN]:
+                restart = True
 
             # Quit the game if player closed the window
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     quit_game = True
                     break
+
+        return quit_game
+
+    def game_loop(self):
+        """
+        Runs the game.
+        """
+
+        quit_game = False
+        game_over = False
+        i = 1
+        score = 0
+        while not (game_over or quit_game):
+
+            pygame.time.delay(10)
 
             # Spin the player balls
             keys = pygame.key.get_pressed()
@@ -123,11 +156,10 @@ class DuetGame(object):
             # Move all obstacles downward
             self.move_obstacles()
 
-            oldest_obstacle = self.obstacle_manager.oldest_obstacle()
-
             # If an obstacle went out of frame, delete it
-            if oldest_obstacle.out_of_frame():
+            if self.obstacle_manager.oldest_out_of_frame():
                 self.obstacle_manager.remove_obstacle()
+                score += 1
 
             # If it is time, make a new obstacle
             if i % NEW_OBS_INTERVAL == 0:
@@ -138,24 +170,39 @@ class DuetGame(object):
             self.draw_circle()
             self.draw_balls()
             self.draw_obstacles()
-            self.draw_score()
+            self.draw_score(score)
             pygame.display.update()
 
             # If either ball has collided, quit
+            oldest_obstacle = self.obstacle_manager.oldest_obstacle()
             if self.blue_ball.has_collided(oldest_obstacle):
-                quit_game = True
+                game_over = True
             if self.red_ball.has_collided(oldest_obstacle):
-                quit_game = True
+                game_over = True
+
+            # Quit the game if player closed the window
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quit_game = True
+                    break
 
             i += 1
+            i = i % 2000
 
-        pygame.quit()
+        if game_over:
+            quit_game = self.game_over()
+
+        return quit_game
 
 
 def main():
 
-    game = DuetGame()
-    game.game_loop()
+    quit_game = False
+    while not quit_game:
+        game = DuetGame()
+        quit_game = game.game_loop()
+
+    pygame.quit()
 
 
 if __name__ == "__main__":
