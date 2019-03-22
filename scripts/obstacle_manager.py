@@ -65,6 +65,9 @@ class ObstacleManager(object):
 
 
 class ObstacleType(Enum):
+    """
+    Enum for the different types of obstacles.
+    """
     MID = 1
 
 
@@ -109,7 +112,3 @@ class Obstacle(object):
         Returns the obstacle as a pygame Rect.
         """
         return pygame.Rect(self.x, self.y, self.width, self.height)
-
-    def __str__(self):
-
-        return "Object #" + str(self.id)

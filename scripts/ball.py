@@ -25,6 +25,9 @@ class Ball(object):
         self.radius = r
 
     def position(self):
+        """
+        Returns current position of the ball.
+        """
         return (self.x, self.y)
 
     def spin_left(self):
