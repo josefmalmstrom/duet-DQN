@@ -4,7 +4,7 @@ This is a mockup version of the game Duet by Kumobius, available [here](https://
 
 ## Getting started
 
-Python 3 is required to run the game. Install the game by cloning this repository
+The game is written for Python 3.5. Install the game by cloning this repository
 ```
 git clone https://github.com/josefmal/duet-game-AI.git
 ```
