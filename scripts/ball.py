@@ -1,5 +1,8 @@
 import numpy as np
-import pygame
+
+import contextlib
+with contextlib.redirect_stdout(None):
+    import pygame
 
 BALL_RADIUS = 12   # size of player balls
 
@@ -50,7 +53,7 @@ class Ball(object):
         self.x = self.xc + int(self.radius*np.cos(self.theta))
         self.y = self.yc + int(self.radius*np.sin(self.theta))
 
-    def has_collided(self, obstacle):
+    def collided_with(self, obstacle):
         """
         Checks if the ball has collided with obstacle.
         """

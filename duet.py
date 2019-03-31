@@ -1,10 +1,11 @@
-import contextlib
-with contextlib.redirect_stdout(None):
-    import pygame
 import numpy as np
 
 from scripts.ball import Ball
 from scripts.obstacle_manager import ObstacleManager
+
+import contextlib
+with contextlib.redirect_stdout(None):
+    import pygame
 
 
 BOARD_HEIGHT = 960
@@ -36,7 +37,7 @@ class DuetGame(object):
 
         self.init_balls()
         self.obstacle_manager = ObstacleManager()
-        self.obstacle_manager.new_obstacle()
+        self.obstacle_manager.new_obstacle_set()
 
         pygame.font.init()
         self.score_font = pygame.font.Font("freesansbold.ttf", 20)
@@ -81,8 +82,9 @@ class DuetGame(object):
         """
         Draws all the current obstacles.
         """
-        for obstacle in self.obstacle_manager:
-            pygame.draw.rect(self.screen, WHITE, obstacle.get_rect())
+        for obstacle_set in self.obstacle_manager:
+            for obstacle in obstacle_set:
+                pygame.draw.rect(self.screen, WHITE, obstacle.get_rect())
 
     def draw_score(self, score):
         """
@@ -96,8 +98,9 @@ class DuetGame(object):
         Moves all obstacles one step.
         """
 
-        for obstacle in self.obstacle_manager:
-            obstacle.move()
+        for obstacle_set in self.obstacle_manager:
+            for obstacle in obstacle_set:
+                obstacle.move()
 
     def game_over(self):
         """
@@ -160,12 +163,12 @@ class DuetGame(object):
 
             # If an obstacle went out of frame, delete it
             if self.obstacle_manager.oldest_out_of_frame():
-                self.obstacle_manager.remove_obstacle()
+                self.obstacle_manager.remove_obstacle_set()
                 score += 1
 
             # If it is time, make a new obstacle
             if i % NEW_OBS_INTERVAL == 0:
-                self.obstacle_manager.new_obstacle()
+                self.obstacle_manager.new_obstacle_set()
 
             # Draw the game
             self.screen.fill(BLACK)
@@ -176,11 +179,12 @@ class DuetGame(object):
             pygame.display.update()
 
             # If either ball has collided, quit
-            oldest_obstacle = self.obstacle_manager.oldest_obstacle()
-            if self.blue_ball.has_collided(oldest_obstacle):
-                game_over = True
-            if self.red_ball.has_collided(oldest_obstacle):
-                game_over = True
+            oldest_obstacle_set = self.obstacle_manager.oldest_obstacle_set()
+            for obstacle in oldest_obstacle_set:
+                if self.blue_ball.collided_with(obstacle):
+                    game_over = True
+                if self.red_ball.collided_with(obstacle):
+                    game_over = True
 
             # Quit the game if player closed the window
             for event in pygame.event.get():

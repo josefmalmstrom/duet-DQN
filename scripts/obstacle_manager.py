@@ -1,6 +1,9 @@
-import pygame
 import random
 from enum import Enum
+
+import contextlib
+with contextlib.redirect_stdout(None):
+    import pygame
 
 BOARD_HEIGHT = 960
 BOARD_WIDTH = 540
@@ -13,6 +16,7 @@ OBS_VEL = 2
 MID_COORDS = (195, 235, 308, 345, 70, 70)
 LEFT_COORDS = (35, 35, 270, 270, 70, 70)
 RIGHT_COORDS = (270, 270, 505, 505, 70, 70)
+DOUBLE_COORDS = (35, 35, 200, 200, 70, 70)  # left coords
 
 
 class ObstacleManager(object):
@@ -28,9 +32,9 @@ class ObstacleManager(object):
 
         return iter(self.obstacles)
 
-    def new_obstacle(self):
+    def new_obstacle_set(self):
         """
-        Generates a new obstacle.
+        Generates a new obstacle set.
         """
 
         obs_type = self.random_obstacle_type()
@@ -41,6 +45,8 @@ class ObstacleManager(object):
             COORDS = LEFT_COORDS
         elif obs_type == ObstacleType.RIGHT:
             COORDS = RIGHT_COORDS
+        elif obs_type == ObstacleType.DOUBLE:
+            COORDS = DOUBLE_COORDS
 
         (min_left, max_left, min_right, max_right,
          min_height, max_height) = COORDS
@@ -50,30 +56,36 @@ class ObstacleManager(object):
         height = random.randint(min_height, max_height)
         spawn_y = 0 - height
 
-        new_obstacle = Obstacle(spawn_x, spawn_y, width, height)
-        self.obstacles.append(new_obstacle)
+        new_obstacle_set = [Obstacle(spawn_x, spawn_y, width, height)]
+
+        if obs_type == ObstacleType.DOUBLE:
+            spawn_x = BOARD_WIDTH - random.randint(min_left, max_left) - width
+            new_obstacle_set.append(Obstacle(spawn_x, spawn_y, width, height))
+
+        self.obstacles.append(new_obstacle_set)
 
     def random_obstacle_type(self):
         """
         Picks a random obstacle type.
         """
         return random.choice(list(ObstacleType))
-        
-    def oldest_obstacle(self):
+
+    def oldest_obstacle_set(self):
         """
-        Returns the oldest obstacle.
+        Returns the oldest obstacle set.
         """
         return self.obstacles[0]
 
     def oldest_out_of_frame(self):
         """
-        Checks if the oldest obstacle has gone out of frame.
+        Checks if the oldest obstacle set has gone out of frame.
         """
-        return self.obstacles[0].out_of_frame()
 
-    def remove_obstacle(self):
+        return self.obstacles[0][0].out_of_frame()
+
+    def remove_obstacle_set(self):
         """
-        Removes the oldest obstacle.
+        Removes the oldest obstacle set.
         """
         self.obstacles.pop(0)
 
@@ -85,6 +97,7 @@ class ObstacleType(Enum):
     MID = 1
     LEFT = 2
     RIGHT = 3
+    DOUBLE = 4
 
 
 class Obstacle(object):
