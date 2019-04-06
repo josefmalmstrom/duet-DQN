@@ -1,7 +1,9 @@
+import argparse
 import numpy as np
 
 from scripts.ball import Ball
 from scripts.obstacle_manager import ObstacleManager
+from scripts.controller import Controller
 
 import contextlib
 with contextlib.redirect_stdout(None):
@@ -27,8 +29,11 @@ GREY = (169, 169, 169)
 
 
 class DuetGame(object):
+    """
+    One instance of the duet.py game.
+    """
 
-    def __init__(self):
+    def __init__(self, mode):
 
         pygame.init()
 
@@ -43,6 +48,11 @@ class DuetGame(object):
         self.score_font = pygame.font.Font("freesansbold.ttf", 20)
         self.game_over_font = pygame.font.Font("freesansbold.ttf", 80)
         self.restart_font = pygame.font.Font("freesansbold.ttf", 20)
+
+        self.mode = mode
+
+        if self.mode == "contr":
+            self.controller = Controller()
 
     def init_balls(self):
         """
@@ -62,6 +72,44 @@ class DuetGame(object):
         red_theta = 0
         self.red_ball = Ball(red_x, red_y, red_theta,
                              CIRCLE_RADIUS, SPIN_STEP)
+
+    def move_balls(self):
+        """
+        Applies controlls to the player balls.
+        """
+
+        if self.mode == "man":
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_LEFT]:
+
+                self.blue_ball.spin_left()
+                self.red_ball.spin_left()
+
+            elif keys[pygame.K_RIGHT]:
+
+                self.blue_ball.spin_right()
+                self.red_ball.spin_right()
+
+        elif self.mode == "contr":
+
+            controll = self.controller.get_controll(self.obstacle_manager.get_obstacles(),
+                                                    self.red_ball.position(), self.blue_ball.position())
+
+            if controll == -1:
+                self.blue_ball.spin_left()
+                self.red_ball.spin_left()
+            elif controll == 1:
+                self.blue_ball.spin_right()
+                self.red_ball.spin_right()
+
+        elif self.mode == "ai":
+            # TODO
+            print("Not implemented yet!")
+            exit()
+
+        else:
+            raise ValueError("Invalid game mode '{}'".format(self.mode))
 
     def draw_circle(self):
         """
@@ -146,17 +194,8 @@ class DuetGame(object):
 
             pygame.time.delay(10)
 
-            # Spin the player balls
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_LEFT]:
-
-                self.blue_ball.spin_left()
-                self.red_ball.spin_left()
-
-            elif keys[pygame.K_RIGHT]:
-
-                self.blue_ball.spin_right()
-                self.red_ball.spin_right()
+            # Move the player balls
+            self.move_balls()
 
             # Move all obstacles downward
             self.move_obstacles()
@@ -203,9 +242,15 @@ class DuetGame(object):
 
 def main():
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--mode", type=str, choices=["man", "contr", "ai"],
+                        default="man", help="mode of operation for the game")
+
+    args = parser.parse_args()
+
     quit_game = False
     while not quit_game:
-        game = DuetGame()
+        game = DuetGame(args.mode)
         quit_game = game.game_loop()
 
     pygame.quit()

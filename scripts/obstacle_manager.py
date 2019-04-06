@@ -70,6 +70,12 @@ class ObstacleManager(object):
         """
         return random.choice(list(ObstacleType))
 
+    def get_obstacles(self):
+        """
+        Returns the list of obstacle sets.
+        """
+        return self.obstacles
+
     def oldest_obstacle_set(self):
         """
         Returns the oldest obstacle set.
@@ -107,8 +113,8 @@ class Obstacle(object):
 
     def __init__(self, x, y, width, height):
 
-        self.x = x
-        self.y = y
+        self.x = x  # = left
+        self.y = y  # = top
         self.width = width
         self.height = height
 
@@ -136,3 +142,16 @@ class Obstacle(object):
         Returns the obstacle as a pygame Rect.
         """
         return pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def x_span(self):
+        """
+        Returns the interval of x coordinates that
+        the obstacle spans.
+        """
+        return (self.left, self.right)
+
+    def get_top(self):
+        """
+        Returns y-coordinate of the top of the obstacle.
+        """
+        return self.top
