@@ -13,8 +13,8 @@ with contextlib.redirect_stdout(None):
 BOARD_HEIGHT = 960
 BOARD_WIDTH = 540
 
-CIRCLE_RADIUS = 100   # distance between the balls
-CIRCLE_WIDTH = 1  # width or grey circle
+CIRCLE_RADIUS = 100   # distance from either ball to center
+CIRCLE_WIDTH = 1  # width of grey circle
 DIST_TO_BOTTOM = CIRCLE_RADIUS + 15  # dist from ball to bottom of screen
 SPIN_STEP = 0.0224  # angular step of player balls in radians
 
@@ -157,8 +157,7 @@ class DuetGame(object):
 
         game_over_surface = self.game_over_font.render("Game Over", False, RED)
         self.screen.blit(game_over_surface, (50, BOARD_HEIGHT//2))
-        restart_surface = self.restart_font.render(
-            "Press ESC to quit or RETURN to restart", False, RED)
+        restart_surface = self.restart_font.render("Press ESC to quit or RETURN to restart", False, RED)
         self.screen.blit(restart_surface, (80, BOARD_HEIGHT//2 + 80))
         pygame.display.update()
 
@@ -245,7 +244,6 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", type=str, choices=["man", "contr", "ai"],
                         default="man", help="mode of operation for the game")
-
     args = parser.parse_args()
 
     quit_game = False

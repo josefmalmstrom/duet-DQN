@@ -155,3 +155,9 @@ class Obstacle(object):
         Returns y-coordinate of the top of the obstacle.
         """
         return self.top
+
+    def get_bottom(self):
+        """
+        Returns the y-coordinate of the bottom of the obstacle.
+        """
+        return self.bottom
