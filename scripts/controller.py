@@ -62,6 +62,11 @@ class Controller(object):
         or spin right) based on the set of obstacle sets on the board.
         """
 
+        # Must be a double-obstacle
+        if len(self.curr_obstacle_set) == 2:
+            self.action = Action.ALIGN_VERTICAL
+            return
+
         red_collision_course = False
         blue_collision_course = False
         for obstacle in self.curr_obstacle_set:
@@ -75,11 +80,6 @@ class Controller(object):
                 blue_collision_course = True
 
         if red_collision_course and blue_collision_course:
-
-            # Must be a double-obstacle
-            if len(self.curr_obstacle_set) == 2:
-                self.action = Action.ALIGN_VERTICAL
-                return
 
             obstacle = self.curr_obstacle_set[0]
             left, right = obstacle.x_span()
@@ -100,7 +100,11 @@ class Controller(object):
 
         if red_collision_course:
 
-            if self.red_y == self.blue_y and self.red_y - obstacle.get_bottom() > 2.5*CIRCLE_RADIUS:
+            if self.action == Action.ALIGN_VERTICAL:
+                self.action = Action.SPIN_LEFT
+                return
+
+            if self.red_y - obstacle.get_bottom() > 2.5*CIRCLE_RADIUS:
                 self.action = Action.IDLE
                 return
 
@@ -112,7 +116,11 @@ class Controller(object):
 
         if blue_collision_course:
 
-            if self.red_y == self.blue_y and self.blue_y - obstacle.get_bottom() > 2.5*CIRCLE_RADIUS:
+            if self.action == Action.ALIGN_VERTICAL:
+                self.action = Action.SPIN_LEFT
+                return
+
+            if self.blue_y - obstacle.get_bottom() > 2.5*CIRCLE_RADIUS:
                 self.action = Action.IDLE
                 return
 
@@ -121,6 +129,9 @@ class Controller(object):
                 return
             self.action = Action.SPIN_RIGHT
             return
+
+        self.action = Action.IDLE
+        return
 
     def calculate_controlls(self):
         """
