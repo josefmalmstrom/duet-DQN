@@ -10,7 +10,7 @@ git clone https://github.com/josefmal/duet-game-AI.git
 ```
 Install the requirements
 ```
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 Start the game by running
 ```
