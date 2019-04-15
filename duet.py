@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+import os
 
 from scripts.ball import Ball
 from scripts.obstacle_manager import ObstacleManager
@@ -248,6 +249,7 @@ def main():
 
     quit_game = False
     while not quit_game:
+        os.system("clear")
         game = DuetGame(args.mode)
         quit_game = game.game_loop()
 

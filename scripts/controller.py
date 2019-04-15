@@ -78,16 +78,6 @@ class Controller(object):
 
         MARGIN = 15
 
-        # Must be a double-obstacle
-        if len(self.curr_obstacle_set) == 2:
-
-            if abs(self.red_x - self.blue_x) <= ALIGN_TOL:
-                self.action = Action.IDLE
-                return
-
-            self.action = Action.ALIGN_VERTICAL
-            return
-
         red_collision_course = False
         blue_collision_course = False
         for obstacle in self.curr_obstacle_set:
@@ -99,6 +89,20 @@ class Controller(object):
 
             if self.blue_x in range(left - MARGIN, right + 1 + MARGIN):
                 blue_collision_course = True
+
+        # Must be a double-obstacle
+        if len(self.curr_obstacle_set) == 2:
+
+            if abs(self.red_x - self.blue_x) <= ALIGN_TOL:
+                self.action = Action.IDLE
+                return
+
+            if not(red_collision_course or blue_collision_course):
+                self.action = Action.IDLE
+                return
+
+            self.action = Action.ALIGN_VERTICAL
+            return
 
         if red_collision_course and blue_collision_course:
 
