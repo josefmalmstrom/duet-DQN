@@ -56,11 +56,11 @@ class ObstacleManager(object):
         height = random.randint(min_height, max_height)
         spawn_y = 0 - height
 
-        new_obstacle_set = [Obstacle(spawn_x, spawn_y, width, height)]
+        new_obstacle_set = [Obstacle(spawn_x, spawn_y, width, height, obs_type)]
 
         if obs_type == ObstacleType.DOUBLE:
             spawn_x = BOARD_WIDTH - random.randint(min_left, max_left) - width
-            new_obstacle_set.append(Obstacle(spawn_x, spawn_y, width, height))
+            new_obstacle_set.append(Obstacle(spawn_x, spawn_y, width, height, obs_type))
 
         self.obstacles.append(new_obstacle_set)
 
@@ -111,7 +111,7 @@ class Obstacle(object):
     An obstacle in the Duet game.
     """
 
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, obs_type):
 
         self.x = x  # = left
         self.y = y  # = top
@@ -122,6 +122,8 @@ class Obstacle(object):
         self.bottom = self.y - height
         self.left = self.x
         self.right = self.x + width
+
+        self.obs_type = obs_type
 
     def move(self):
         """
@@ -161,3 +163,9 @@ class Obstacle(object):
         Returns the y-coordinate of the bottom of the obstacle.
         """
         return self.bottom
+
+    def get_type(self):
+        """
+        Returns the obstacles type.
+        """
+        return self.obs_type

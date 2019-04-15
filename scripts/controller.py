@@ -25,7 +25,8 @@ class Controller(object):
 
         self.action = Action.IDLE
         self.curr_obstacle_set = None
-        self.count = 0
+
+        self.prev_obs_type = None
 
     def get_controll(self, obstacle_sets, red_pos, blue_pos):
         """
@@ -40,6 +41,8 @@ class Controller(object):
 
         if self.curr_obstacle_avoided():
             self.curr_obstacle_set = obstacle_sets[1]
+
+        self.print_obstacle_type()
 
         self.determine_action()
 
@@ -56,14 +59,32 @@ class Controller(object):
 
         return True
 
+    def print_obstacle_type(self):
+        """
+        Prints the type of the obstacle set currently being avoided whenever
+        switching to a new obstacle set.
+        """
+
+        curr_obs_type = self.curr_obstacle_set[0].get_type()
+        if curr_obs_type != self.prev_obs_type:
+            print("Currently avoiding: " + str(curr_obs_type))
+            self.prev_obs_type = curr_obs_type
+
     def determine_action(self):
         """
         Determines the next action (align vertical, align horiontal, spin left
         or spin right) based on the set of obstacle sets on the board.
         """
 
+        MARGIN = 15
+
         # Must be a double-obstacle
         if len(self.curr_obstacle_set) == 2:
+
+            if abs(self.red_x - self.blue_x) <= ALIGN_TOL:
+                self.action = Action.IDLE
+                return
+
             self.action = Action.ALIGN_VERTICAL
             return
 
@@ -73,10 +94,10 @@ class Controller(object):
 
             left, right = obstacle.x_span()
 
-            if self.red_x in range(left, right+1):
+            if self.red_x in range(left - MARGIN, right + 1 + MARGIN):
                 red_collision_course = True
 
-            if self.blue_x in range(left, right+1):
+            if self.blue_x in range(left - MARGIN, right + 1 + MARGIN):
                 blue_collision_course = True
 
         if red_collision_course and blue_collision_course:
@@ -95,6 +116,10 @@ class Controller(object):
                 return
 
             # Must be a mid-obstacle
+            if abs(self.red_y - self.blue_y) <= ALIGN_TOL:
+                self.action = Action.IDLE
+                return
+
             self.action = Action.ALIGN_HORISONTAL
             return
 
@@ -131,7 +156,6 @@ class Controller(object):
             return
 
         self.action = Action.IDLE
-        return
 
     def calculate_controlls(self):
         """
@@ -149,10 +173,6 @@ class Controller(object):
 
         if self.action == Action.ALIGN_HORISONTAL:
 
-            if abs(self.red_y - self.blue_y) <= ALIGN_TOL:
-                self.action = Action.IDLE
-                return 0
-
             # Red is to the left and ...
             if self.red_x < self.blue_x:
                 if self.red_y > self.blue_y:
@@ -165,10 +185,6 @@ class Controller(object):
             return -1  # above
 
         if self.action == Action.ALIGN_VERTICAL:
-
-            if abs(self.red_x - self.blue_x) <= ALIGN_TOL:
-                self.action = Action.IDLE
-                return 0
 
             # Red is above and ...
             if self.red_y < self.blue_y:
