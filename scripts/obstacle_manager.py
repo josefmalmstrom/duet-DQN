@@ -70,6 +70,7 @@ class ObstacleManager(object):
         Picks a random obstacle type.
         """
         return random.choice(list(ObstacleType))
+        # return random.choice([ObstacleType.DOUBLE, ObstacleType.LEFT, ObstacleType.RIGHT])
 
     def get_obstacles(self):
         """
