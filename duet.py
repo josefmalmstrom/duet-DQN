@@ -5,6 +5,7 @@ import os
 from scripts.ball import Ball
 from scripts.obstacle_manager import ObstacleManager
 from scripts.controller import Controller
+from scripts.screen_recorder import ScreenRecorder
 
 import contextlib
 with contextlib.redirect_stdout(None):
@@ -34,7 +35,7 @@ class DuetGame(object):
     One instance of the duet.py game.
     """
 
-    def __init__(self, mode):
+    def __init__(self, mode, capture):
 
         pygame.init()
 
@@ -51,9 +52,13 @@ class DuetGame(object):
         self.restart_font = pygame.font.Font("freesansbold.ttf", 20)
 
         self.mode = mode
+        self.capture = capture
 
         if self.mode == "contr":
             self.controller = Controller()
+
+        if self.capture:
+            self.recorder = ScreenRecorder()
 
     def init_balls(self):
         """
@@ -217,6 +222,12 @@ class DuetGame(object):
             self.draw_score(score)
             pygame.display.update()
 
+            # Record the screen
+            if self.capture:
+                # TODO
+                screen_pixels = pygame.PixelArray(self.screen)
+                screen_pixels.close()
+
             # If either ball has collided, quit
             oldest_obstacle_set = self.obstacle_manager.oldest_obstacle_set()
             for obstacle in oldest_obstacle_set:
@@ -245,12 +256,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", type=str, choices=["man", "contr", "ai"],
                         default="man", help="mode of operation for the game")
+    parser.add_argument("-c", "--capture", action="store_true", default=False,
+                        help="captures screen as sequence of pixel arrays")
     args = parser.parse_args()
 
     quit_game = False
     while not quit_game:
         os.system("clear")
-        game = DuetGame(args.mode)
+        game = DuetGame(args.mode, args.capture)
         quit_game = game.game_loop()
 
     pygame.quit()
