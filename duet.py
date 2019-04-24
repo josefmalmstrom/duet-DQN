@@ -2,10 +2,9 @@ import argparse
 import numpy as np
 import os
 
-from scripts.ball import Ball
-from scripts.obstacle_manager import ObstacleManager
-from scripts.controller import Controller
-from scripts.screen_recorder import ScreenRecorder
+from duet_backend.ball import Ball
+from duet_backend.obstacle_manager import ObstacleManager
+from duet_backend.controller import Controller
 
 import contextlib
 with contextlib.redirect_stdout(None):
@@ -35,7 +34,7 @@ class DuetGame(object):
     One instance of the duet.py game.
     """
 
-    def __init__(self, mode, capture):
+    def __init__(self, mode="ai", capture=True):
 
         pygame.init()
 
@@ -51,14 +50,16 @@ class DuetGame(object):
         self.game_over_font = pygame.font.Font("freesansbold.ttf", 80)
         self.restart_font = pygame.font.Font("freesansbold.ttf", 20)
 
+        self.score = 0
+        self.i = 1
+
         self.mode = mode
         self.capture = capture
 
         if self.mode == "contr":
             self.controller = Controller()
-
-        if self.capture:
-            self.recorder = ScreenRecorder()
+        elif self.mode == "ai":
+            self.action = None
 
     def init_balls(self):
         """
@@ -101,7 +102,6 @@ class DuetGame(object):
 
             controll = self.controller.get_controll(self.obstacle_manager.get_obstacles(),
                                                     self.red_ball.position(), self.blue_ball.position())
-
             if controll == -1:
                 self.blue_ball.spin_left()
                 self.red_ball.spin_left()
@@ -110,9 +110,13 @@ class DuetGame(object):
                 self.red_ball.spin_right()
 
         elif self.mode == "ai":
-            # TODO
-            print("Not implemented yet!")
-            exit()
+
+            if self.action == 1:
+                self.blue_ball.spin_left()
+                self.red_ball.spin_left()
+            elif self.action == 2:
+                self.blue_ball.spin_right()
+                self.red_ball.spin_right()
 
         else:
             raise ValueError("Invalid game mode '{}'".format(self.mode))
@@ -140,11 +144,11 @@ class DuetGame(object):
             for obstacle in obstacle_set:
                 pygame.draw.rect(self.screen, WHITE, obstacle.get_rect())
 
-    def draw_score(self, score):
+    def draw_score(self):
         """
         Draws the score in lower left corner.
         """
-        score_surface = self.score_font.render(str(score), False, WHITE)
+        score_surface = self.score_font.render(str(self.score), False, WHITE)
         self.screen.blit(score_surface, (10, BOARD_HEIGHT-25))
 
     def move_obstacles(self):
@@ -186,6 +190,28 @@ class DuetGame(object):
 
         return quit_game
 
+    def state_size(self):
+        """
+        Returns the shape of the state representation.
+        """
+        return BOARD_WIDTH*BOARD_HEIGHT
+
+    def action_size(self):
+        """
+        Returns the shape of the action representation.
+        """
+        return 3
+
+    def get_screen_state(self):
+        """
+        Returns the current screen as a numpy pixel array.
+        """
+        screen_pixels = pygame.PixelArray(self.screen)
+        new_state = np.asarray(screen_pixels).flatten()
+        screen_pixels.close()
+
+        return new_state
+
     def game_loop(self):
         """
         Runs the game.
@@ -193,46 +219,13 @@ class DuetGame(object):
 
         quit_game = False
         game_over = False
-        i = 1
-        score = 0
+        self.i = 1
+        self.score = 0
         while not (game_over or quit_game):
 
             pygame.time.delay(10)
 
-            # Move the player balls
-            self.move_balls()
-
-            # Move all obstacles downward
-            self.move_obstacles()
-
-            # If an obstacle went out of frame, delete it
-            if self.obstacle_manager.oldest_out_of_frame():
-                self.obstacle_manager.remove_obstacle_set()
-                score += 1
-
-            # If it is time, make a new obstacle
-            if i % NEW_OBS_INTERVAL == 0:
-                self.obstacle_manager.new_obstacle_set()
-
-            # Draw the game
-            self.screen.fill(BLACK)
-            self.draw_circle()
-            self.draw_balls()
-            self.draw_obstacles()
-            self.draw_score(score)
-            pygame.display.update()
-
-            # Record the screen
-            if self.capture:
-                self.screen_recorder.record(self.screen)
-
-            # If either ball has collided, quit
-            oldest_obstacle_set = self.obstacle_manager.oldest_obstacle_set()
-            for obstacle in oldest_obstacle_set:
-                if self.blue_ball.collided_with(obstacle):
-                    game_over = True
-                if self.red_ball.collided_with(obstacle):
-                    game_over = True
+            _, _, game_over = self.step(action=None)
 
             # Quit the game if player closed the window
             for event in pygame.event.get():
@@ -240,13 +233,62 @@ class DuetGame(object):
                     quit_game = True
                     break
 
-            i += 1
-            i = i % NEW_OBS_INTERVAL
-
         if game_over:
             quit_game = self.game_over()
 
         return quit_game
+
+    def step(self, action):
+        """
+        Performs action (idle, spin clockwise or spin counter-clockwise) in the game
+        and returns the resulting (new_state, reward, game_over).
+        """
+
+        game_over = False
+
+        self.action = action
+
+        # Move the player balls
+        self.move_balls()
+
+        # Move all obstacles downward
+        self.move_obstacles()
+
+        # If an obstacle went out of frame, delete it
+        if self.obstacle_manager.oldest_out_of_frame():
+            self.obstacle_manager.remove_obstacle_set()
+            self.score += 1
+
+        # If it is time, make a new obstacle
+        if self.i % NEW_OBS_INTERVAL == 0:
+            self.obstacle_manager.new_obstacle_set()
+
+        # Draw the game
+        self.screen.fill(BLACK)
+        self.draw_circle()
+        self.draw_balls()
+        self.draw_obstacles()
+        self.draw_score()
+        pygame.display.update()
+
+        # If either ball has collided, quit
+        oldest_obstacle_set = self.obstacle_manager.oldest_obstacle_set()
+        for obstacle in oldest_obstacle_set:
+            if self.blue_ball.collided_with(obstacle):
+                game_over = True
+            if self.red_ball.collided_with(obstacle):
+                game_over = True
+
+        self.i += 1
+        self.i = self.i % NEW_OBS_INTERVAL
+
+        new_state = None
+        if self.capture:
+            new_state = self.get_screen_state()
+
+        reward = self.score if game_over else 0
+
+        return (new_state, reward, game_over)
 
 
 def main():
@@ -254,14 +296,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", type=str, choices=["man", "contr", "ai"],
                         default="man", help="mode of operation for the game")
-    parser.add_argument("-c", "--capture", action="store_true", default=False,
-                        help="captures screen as sequence of pixel arrays")
     args = parser.parse_args()
 
     quit_game = False
     while not quit_game:
         os.system("clear")
-        game = DuetGame(args.mode, args.capture)
+        game = DuetGame(args.mode, False)
         quit_game = game.game_loop()
 
     pygame.quit()
