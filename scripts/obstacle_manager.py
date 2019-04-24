@@ -13,7 +13,7 @@ OBS_VEL = 2
 
 # Types of obstacles
 # (min_left, max_left, min_right, max_right, min_height, max_height)
-#MID_COORDS = (195, 235, 308, 345, 70, 70)
+# MID_COORDS = (195, 235, 308, 345, 70, 70)
 MID_COORDS = (215, 215, 325, 325, 70, 70)
 LEFT_COORDS = (35, 35, 270, 270, 70, 70)
 RIGHT_COORDS = (270, 270, 505, 505, 70, 70)

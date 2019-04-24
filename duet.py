@@ -224,9 +224,7 @@ class DuetGame(object):
 
             # Record the screen
             if self.capture:
-                # TODO
-                screen_pixels = pygame.PixelArray(self.screen)
-                screen_pixels.close()
+                self.screen_recorder.record(self.screen)
 
             # If either ball has collided, quit
             oldest_obstacle_set = self.obstacle_manager.oldest_obstacle_set()
