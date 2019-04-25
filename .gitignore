@@ -1,1 +1,3 @@
 __pycache__/
+*.json
+*.h5f
