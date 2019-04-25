@@ -1,5 +1,6 @@
 from __future__ import division
 import argparse
+import os
 
 from PIL import Image
 import numpy as np
@@ -109,9 +110,16 @@ if __name__ == "__main__":
     if args.mode == 'train':
         # Okay, now it's time to learn something! We capture the interrupt exception so that training
         # can be prematurely aborted. Notice that now you can use the built-in Keras callbacks!
-        weights_filename = 'dqn_duet_weights.h5f'
-        checkpoint_weights_filename = 'dqn_duet_weights_{step}.h5f'
-        log_filename = 'dqn_duet_log.json'
+
+        if not os.path.exists("log"):
+            os.makedirs("log")
+        if not os.path.exists("weights"):
+            os.makedirs("weights")
+
+        weights_filename = 'weights/dqn_duet_weights.h5f'
+        checkpoint_weights_filename = 'weights/dqn_duet_weights_{step}.h5f'
+        log_filename = 'log/dqn_duet_log.json'
+
         callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=250000)]
         callbacks += [FileLogger(log_filename, interval=100)]
         dqn.fit(env, callbacks=callbacks, nb_steps=1750000, log_interval=10000)
@@ -120,10 +128,10 @@ if __name__ == "__main__":
         dqn.save_weights(weights_filename, overwrite=True)
 
         # Finally, evaluate our algorithm for 10 episodes.
-        dqn.test(env, nb_episodes=10, visualize=False)
+        dqn.test(env, nb_episodes=10, visualize=True)
 
     elif args.mode == 'test':
-        weights_filename = 'dqn_duet_weights.h5f'
+        weights_filename = 'weights/dqn_duet_weights.h5f'
         if args.weights:
             weights_filename = args.weights
         dqn.load_weights(weights_filename)

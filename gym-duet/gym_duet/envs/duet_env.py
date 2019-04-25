@@ -44,7 +44,7 @@ class DuetGame(gym.Env):
     action_space = spaces.Discrete(3)
     observation_space = spaces.Box(low=0, high=255, shape=(BOARD_WIDTH, BOARD_HEIGHT, 3), dtype=np.uint8)
 
-    def __init__(self, mode="ai", capture=True):
+    def __init__(self, mode="ai", capture=True, render=False):
 
         pygame.init()
 
@@ -58,6 +58,8 @@ class DuetGame(gym.Env):
 
         self.screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT))
         pygame.display.set_caption("Duet Game")
+        if not render:
+            pygame.display.iconify()
 
         self.score = 0
         self.i = 1
@@ -241,6 +243,8 @@ class DuetGame(gym.Env):
         self.game_over_font = pygame.font.Font("freesansbold.ttf", 80)
         self.restart_font = pygame.font.Font("freesansbold.ttf", 20)
 
+        return self.get_state()
+
     def game_loop(self):
         """
         Runs the game.
@@ -318,7 +322,6 @@ class DuetGame(gym.Env):
 
         reward = self.score if game_over else 0
 
-        print("State shape: {}".format(state.shape))
         return (state, reward, game_over, {})
 
     def render(self, mode='human', close=False):
@@ -335,7 +338,7 @@ def main():
     quit_game = False
     while not quit_game:
         os.system("clear")
-        game = DuetGame(args.mode, capture=True)
+        game = DuetGame(args.mode, capture=True, render=True)
         quit_game = game.game_loop()
 
     pygame.quit()
