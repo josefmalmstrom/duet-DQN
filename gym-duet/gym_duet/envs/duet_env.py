@@ -1,10 +1,6 @@
-import argparse
 import numpy as np
-import os
-
 import gym
-from gym import error, spaces, utils
-from gym.utils import seeding
+from gym import spaces
 
 from gym_duet.envs.duet_backend.ball import Ball
 from gym_duet.envs.duet_backend.obstacle_manager import ObstacleManager
@@ -44,7 +40,7 @@ class DuetGame(gym.Env):
     action_space = spaces.Discrete(3)
     observation_space = spaces.Box(low=0, high=255, shape=(BOARD_WIDTH, BOARD_HEIGHT, 3), dtype=np.uint8)
 
-    def __init__(self, mode="ai", capture=True, render=False):
+    def __init__(self, mode="ai", capture=True):
 
         pygame.init()
 
@@ -58,8 +54,6 @@ class DuetGame(gym.Env):
 
         self.screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT))
         pygame.display.set_caption("Duet Game")
-        if not render:
-            pygame.display.iconify()
 
         self.score = 0
         self.i = 1
@@ -72,6 +66,146 @@ class DuetGame(gym.Env):
         self.score_font = pygame.font.Font("freesansbold.ttf", 20)
         self.game_over_font = pygame.font.Font("freesansbold.ttf", 80)
         self.restart_font = pygame.font.Font("freesansbold.ttf", 20)
+
+    def man_init(self, mode="ai", capture=True):
+        """
+        For manual initialization after calling gym.make().
+        """
+
+        self.mode = mode
+        self.capture = capture
+
+        if self.mode == "contr":
+            self.controller = Controller()
+        elif self.mode == "ai":
+            self.action = None
+
+    def reset(self):
+        """
+        Resets the game.
+        """
+        self.screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT))
+        pygame.display.set_caption("Duet Game")
+
+        self.score = 0
+        self.i = 1
+
+        self._init_balls()
+        self.obstacle_manager = ObstacleManager()
+        self.obstacle_manager.new_obstacle_set()
+
+        pygame.font.init()
+        self.score_font = pygame.font.Font("freesansbold.ttf", 20)
+        self.game_over_font = pygame.font.Font("freesansbold.ttf", 80)
+        self.restart_font = pygame.font.Font("freesansbold.ttf", 20)
+
+        return self._get_state()
+
+    def step(self, action):
+        """
+        Performs action (idle, spin clockwise or spin counter-clockwise) in the game
+        and returns the resulting (new_state, reward, game_over).
+        """
+
+        game_over = False
+
+        self.action = action
+
+        # Move the player balls
+        self._move_balls()
+
+        # Move all obstacles downward
+        self._move_obstacles()
+
+        # If an obstacle went out of frame, delete it
+        if self.obstacle_manager.oldest_out_of_frame():
+            self.obstacle_manager.remove_obstacle_set()
+            self.score += 1
+
+        # If it is time, make a new obstacle
+        if self.i % NEW_OBS_INTERVAL == 0:
+            self.obstacle_manager.new_obstacle_set()
+
+        # Draw the game
+        self.screen.fill(BLACK)
+        self._draw_circle()
+        self._draw_balls()
+        self._draw_obstacles()
+        self._draw_score()
+
+        # If either ball has collided, quit
+        oldest_obstacle_set = self.obstacle_manager.oldest_obstacle_set()
+        for obstacle in oldest_obstacle_set:
+            if self.blue_ball.collided_with(obstacle):
+                game_over = True
+            if self.red_ball.collided_with(obstacle):
+                game_over = True
+
+        self.i += 1
+        self.i = self.i % NEW_OBS_INTERVAL
+
+        state = None
+        if self.capture:
+            state = self._get_state()
+
+        reward = self.score if game_over else 0
+
+        self._get_state()
+
+        return (state, reward, game_over, {})
+
+    def render(self, mode='human', close=False):
+        pygame.display.update()
+
+    def game_loop(self):
+        """
+        Runs the game.
+        """
+
+        quit_game = False
+        game_over = False
+        self.i = 1
+        self.score = 0
+        while not (game_over or quit_game):
+
+            pygame.time.delay(10)
+
+            _, _, game_over, _ = self.step(action=None)
+
+            self.render()
+
+            # Quit the game if player closed the window
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quit_game = True
+                    break
+
+        if game_over:
+            quit_game = self._game_over()
+
+        return quit_game
+
+    def state_size(self):
+        """
+        Returns the shape of the state representation.
+        """
+        return BOARD_WIDTH*BOARD_HEIGHT
+
+    def nb_actions(self):
+        """
+        Returns the number of possible actions.
+        """
+        return 3
+
+    def _get_state(self):
+        """
+        Returns the current screen as a numpy pixel array.
+        """
+        screen_pixels = pygame.PixelArray(self.screen)
+        state = np.asarray(screen_pixels).T
+        screen_pixels.close()
+
+        return state
 
     def _init_balls(self):
         """
@@ -199,150 +333,3 @@ class DuetGame(gym.Env):
                     break
 
         return quit_game
-
-    def state_size(self):
-        """
-        Returns the shape of the state representation.
-        """
-        return BOARD_WIDTH*BOARD_HEIGHT
-
-    def nb_actions(self):
-        """
-        Returns the number of possible actions.
-        """
-        return 3
-
-    def get_state(self):
-        """
-        Returns the current screen as a numpy pixel array.
-        """
-        screen_pixels = pygame.PixelArray(self.screen)
-        state = np.asarray(screen_pixels)
-        screen_pixels.close()
-
-        state = state.view(np.uint8).reshape(state.shape + (4,))[..., :3]
-
-        return state
-
-    def reset(self):
-        """
-        Resets the game.
-        """
-        self.screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT))
-        pygame.display.set_caption("Duet Game")
-
-        self.score = 0
-        self.i = 1
-
-        self._init_balls()
-        self.obstacle_manager = ObstacleManager()
-        self.obstacle_manager.new_obstacle_set()
-
-        pygame.font.init()
-        self.score_font = pygame.font.Font("freesansbold.ttf", 20)
-        self.game_over_font = pygame.font.Font("freesansbold.ttf", 80)
-        self.restart_font = pygame.font.Font("freesansbold.ttf", 20)
-
-        return self.get_state()
-
-    def game_loop(self):
-        """
-        Runs the game.
-        """
-
-        quit_game = False
-        game_over = False
-        self.i = 1
-        self.score = 0
-        while not (game_over or quit_game):
-
-            pygame.time.delay(10)
-
-            _, _, game_over, _ = self.step(action=None)
-
-            self.render()
-
-            # Quit the game if player closed the window
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    quit_game = True
-                    break
-
-        if game_over:
-            quit_game = self._game_over()
-
-        return quit_game
-
-    def step(self, action):
-        """
-        Performs action (idle, spin clockwise or spin counter-clockwise) in the game
-        and returns the resulting (new_state, reward, game_over).
-        """
-
-        game_over = False
-
-        self.action = action
-
-        # Move the player balls
-        self._move_balls()
-
-        # Move all obstacles downward
-        self._move_obstacles()
-
-        # If an obstacle went out of frame, delete it
-        if self.obstacle_manager.oldest_out_of_frame():
-            self.obstacle_manager.remove_obstacle_set()
-            self.score += 1
-
-        # If it is time, make a new obstacle
-        if self.i % NEW_OBS_INTERVAL == 0:
-            self.obstacle_manager.new_obstacle_set()
-
-        # Draw the game
-        self.screen.fill(BLACK)
-        self._draw_circle()
-        self._draw_balls()
-        self._draw_obstacles()
-        self._draw_score()
-
-        # If either ball has collided, quit
-        oldest_obstacle_set = self.obstacle_manager.oldest_obstacle_set()
-        for obstacle in oldest_obstacle_set:
-            if self.blue_ball.collided_with(obstacle):
-                game_over = True
-            if self.red_ball.collided_with(obstacle):
-                game_over = True
-
-        self.i += 1
-        self.i = self.i % NEW_OBS_INTERVAL
-
-        state = None
-        if self.capture:
-            state = self.get_state()
-
-        reward = self.score if game_over else 0
-
-        return (state, reward, game_over, {})
-
-    def render(self, mode='human', close=False):
-        pygame.display.update()
-
-
-def main():
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--mode", type=str, choices=["man", "contr", "ai"],
-                        default="man", help="mode of operation for the game")
-    args = parser.parse_args()
-
-    quit_game = False
-    while not quit_game:
-        os.system("clear")
-        game = DuetGame(args.mode, capture=True, render=True)
-        quit_game = game.game_loop()
-
-    pygame.quit()
-
-
-if __name__ == "__main__":
-    main()

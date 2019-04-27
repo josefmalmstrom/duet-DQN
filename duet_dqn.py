@@ -27,11 +27,12 @@ WINDOW_LENGTH = 4
 class DuetProcessor(Processor):
 
     def process_observation(self, observation):
-
-        assert observation.ndim == 3  # (width, height, channel)
+        """
+        Processes one observation of the state (2D pixel array)
+        """
 
         img = Image.fromarray(observation)
-        img = img.resize(INPUT_SHAPE).convert('L')  # resize and convert to grayscale
+        img = img.convert('L').resize((84, 84))  # resize and convert to grayscale
         processed_observation = np.array(img)
 
         assert processed_observation.shape == INPUT_SHAPE
