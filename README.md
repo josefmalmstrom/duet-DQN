@@ -24,6 +24,6 @@ python duet.py
 
 To run DQN training on gcloud:
 ```
-xvfb-run -s "-screen 0 1600x900x16" -a /duet-venv/bin/python duet_dqn.py
+xvfb-run -s "-screen 0 1600x900x16" -a home/josefmal/duet-venv/bin/python duet_dqn.py
 
 ```
