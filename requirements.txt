@@ -1,4 +1,6 @@
 numpy
 pygame
+gym
 keras-rl
+tensorflow
 Pillow
