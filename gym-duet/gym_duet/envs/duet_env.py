@@ -108,7 +108,7 @@ class DuetGame(gym.Env):
         """
 
         game_over = False
-        reward = 0
+        reward = 0.01
 
         self.action = action
 
@@ -122,7 +122,7 @@ class DuetGame(gym.Env):
         if self.obstacle_manager.oldest_out_of_frame():
             self.obstacle_manager.remove_obstacle_set()
             self.score += 1
-            reward = 1
+            reward = 10
 
         # If it is time, make a new obstacle
         if self.i % NEW_OBS_INTERVAL == 0:
@@ -140,8 +140,10 @@ class DuetGame(gym.Env):
         for obstacle in oldest_obstacle_set:
             if self.blue_ball.collided_with(obstacle):
                 game_over = True
+                reward = -100
             if self.red_ball.collided_with(obstacle):
                 game_over = True
+                reward = -100
 
         self.i += 1
         self.i = self.i % NEW_OBS_INTERVAL
