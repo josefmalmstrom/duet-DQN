@@ -12,7 +12,18 @@ Install the requirements
 ```
 pip install -r requirements.txt
 ```
+Install the gym-duet module
+```
+cd gym-duet
+pip install -e .
+```
 Start the game by running
 ```
 python duet.py
+```
+
+To run DQN training on gcloud:
+```
+xvfb-run -s "-screen 0 1600x900x16" -a /duet-venv/bin/python duet_dqn.py
+
 ```
