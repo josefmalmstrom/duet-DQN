@@ -52,7 +52,7 @@ class Controller(object):
         """
         Determines if the current obstacle has been avoided.
         """
-        MARGIN = 7.5
+        MARGIN = 9
 
         for obstacle in self.curr_obstacle_set:
             if max(self.red_y, self.blue_y) + MARGIN > obstacle.get_top():

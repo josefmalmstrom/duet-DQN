@@ -17,7 +17,7 @@ OBS_VEL = 2
 MID_COORDS = (215, 215, 325, 325, 70, 70)
 LEFT_COORDS = (35, 35, 270, 270, 70, 70)
 RIGHT_COORDS = (270, 270, 505, 505, 70, 70)
-DOUBLE_COORDS = (35, 35, 195, 195, 70, 70)  # left coords
+DOUBLE_COORDS = (30, 30, 190, 190, 70, 70)  # left coords
 
 
 class ObstacleManager(object):
@@ -26,6 +26,8 @@ class ObstacleManager(object):
     """
 
     def __init__(self):
+
+        random.seed(221)  # for deterministic sequence
 
         self.obstacles = []
 

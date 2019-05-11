@@ -4,7 +4,7 @@ import contextlib
 with contextlib.redirect_stdout(None):
     import pygame
 
-BALL_RADIUS = 12   # size of player balls
+BALL_RADIUS = 15   # size of player balls
 
 
 class Ball(object):
