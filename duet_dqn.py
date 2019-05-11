@@ -38,10 +38,12 @@ class DuetProcessor(Processor):
 
         assert processed_observation.shape == INPUT_SHAPE
 
-        return processed_observation.astype('uint8')  # saves storage in experience memory
+        return processed_observation  # .astype('uint8')  # saves storage in experience memory
 
     def process_state_batch(self, batch):
-        processed_batch = batch.astype('float32') / 255.
+
+        processed_batch = batch.astype('float32') / 255.0
+
         return processed_batch
 
 
@@ -102,7 +104,7 @@ if __name__ == "__main__":
     # (low eps). We also set a dedicated eps value that is used during testing. Note that we set it to 0.05
     # so that the agent still performs some random actions. This ensures that the agent cannot get stuck.
     policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=.05,
-                                  nb_steps=1000000)
+                                  nb_steps=50000000)
 
     dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
                    processor=processor, nb_steps_warmup=50000, gamma=.99, target_model_update=10000,
