@@ -108,7 +108,7 @@ class DuetGame(gym.Env):
         """
 
         game_over = False
-        reward = 0.01
+        reward = 0
 
         self.action = action
 
@@ -140,10 +140,10 @@ class DuetGame(gym.Env):
         for obstacle in oldest_obstacle_set:
             if self.blue_ball.collided_with(obstacle):
                 game_over = True
-                reward = 0
+                reward = -100
             if self.red_ball.collided_with(obstacle):
                 game_over = True
-                reward = 0
+                reward = -100
 
         self.i += 1
         self.i = self.i % NEW_OBS_INTERVAL
