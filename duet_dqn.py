@@ -38,7 +38,7 @@ class DuetProcessor(Processor):
 
         assert processed_observation.shape == INPUT_SHAPE
 
-        return processed_observation  # .astype('uint8')  # saves storage in experience memory
+        return processed_observation.astype('uint8')  # saves storage in experience memory
 
     def process_state_batch(self, batch):
 
