@@ -11,6 +11,8 @@ BOARD_WIDTH = 540
 OBS_HEIGHT = 50
 OBS_VEL = 2
 
+SPAWN_HEIGHT = 0
+
 # Types of obstacles
 # (min_left, max_left, min_right, max_right, min_height, max_height)
 # MID_COORDS = (195, 235, 308, 345, 70, 70)
@@ -57,7 +59,7 @@ class ObstacleManager(object):
         spawn_x = random.randint(min_left, max_left)
         width = random.randint(min_right, max_right) - spawn_x
         height = random.randint(min_height, max_height)
-        spawn_y = 0 - height
+        spawn_y = SPAWN_HEIGHT - height
 
         new_obstacle_set = [Obstacle(spawn_x, spawn_y, width, height, obs_type)]
 

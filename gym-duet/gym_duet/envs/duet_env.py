@@ -99,7 +99,7 @@ class DuetGame(gym.Env):
         self.game_over_font = pygame.font.Font("freesansbold.ttf", 80)
         self.restart_font = pygame.font.Font("freesansbold.ttf", 20)
 
-        return self._get_state()
+        return self._get_coord_state()
 
     def step(self, action):
         """
@@ -140,19 +140,18 @@ class DuetGame(gym.Env):
         for obstacle in oldest_obstacle_set:
             if self.blue_ball.collided_with(obstacle):
                 game_over = True
-                reward = -100
+                reward = 0
             if self.red_ball.collided_with(obstacle):
                 game_over = True
-                reward = -100
+                reward = 0
 
         self.i += 1
         self.i = self.i % NEW_OBS_INTERVAL
 
         state = None
         if self.capture:
-            state = self._get_state()
-
-        self._get_state()
+            # state = self._get_pixel_state()
+            state = self._get_coord_state()
 
         return (state, reward, game_over, {})
 
@@ -199,7 +198,7 @@ class DuetGame(gym.Env):
         """
         return 3
 
-    def _get_state(self):
+    def _get_pixel_state(self):
         """
         Returns the current screen as a numpy pixel array.
         """
@@ -208,6 +207,40 @@ class DuetGame(gym.Env):
         screen_pixels.close()
 
         return state
+
+    def _get_coord_state(self):
+        """
+        Returns the state of the game as a numpy array of coords
+        of the agent and the obstacles.
+
+        [blue, red, top_1, bottom_1, right_1, left_1,
+        top_2, bottom_2, right_2, left_2]
+
+        Where (top_2, bottom_2, right_2, left_2)
+        is (0, 0, 0, 0) if there is no second obstacle.
+        """
+
+        blue_x, blue_y = self.blue_ball.position()
+        red_x, red_y = self.red_ball.position()
+
+        current_obstacle_set = self.obstacle_manager.oldest_obstacle_set()
+
+        obs_1 = current_obstacle_set[0]
+        left, right = obs_1.x_span()
+        top, bottom = obs_1.get_top(), obs_1.get_bottom()
+        obs_1_coords = [top, bottom, left, right]
+
+        if len(current_obstacle_set) == 1:
+            obs_2_coords = [0, 0, 0, 0]
+        else:
+            obs_2 = current_obstacle_set[1]
+            left, right = obs_2.x_span()
+            top, bottom = obs_2.get_top(), obs_2.get_bottom()
+            obs_1_coords = [top, bottom, left, right]
+
+        coords = np.array([blue_x, blue_y, red_x, red_y] + obs_1_coords + obs_2_coords)
+
+        return coords
 
     def _init_balls(self):
         """
