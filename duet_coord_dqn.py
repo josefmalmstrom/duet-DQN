@@ -87,8 +87,9 @@ if __name__ == "__main__":
     dqn.compile(Adam(lr=.00025), metrics=['mae'])
 
     if args.mode == 'train':
-        # Okay, now it's time to learn something! We capture the interrupt exception so that training
-        # can be prematurely aborted. Notice that now you can use the built-in Keras callbacks!
+
+        if args.weights is not None:
+            dqn.load_weights(args.weights)
 
         if not os.path.exists("log"):
             os.makedirs("log")
