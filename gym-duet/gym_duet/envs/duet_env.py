@@ -46,6 +46,7 @@ class DuetGame(gym.Env):
 
         self.mode = mode
         self.capture = capture
+        self.state_rep = "pixel"
 
         if self.mode == "contr":
             self.controller = Controller()
@@ -67,7 +68,7 @@ class DuetGame(gym.Env):
         self.game_over_font = pygame.font.Font("freesansbold.ttf", 80)
         self.restart_font = pygame.font.Font("freesansbold.ttf", 20)
 
-    def man_init(self, mode="ai", capture=True):
+    def man_init(self, state_rep="pixel", mode="ai", capture=True):
         """
         For manual initialization after calling gym.make().
         """
@@ -79,6 +80,8 @@ class DuetGame(gym.Env):
             self.controller = Controller()
         elif self.mode == "ai":
             self.action = None
+
+        self.state_rep = state_rep
 
     def reset(self):
         """
@@ -99,7 +102,11 @@ class DuetGame(gym.Env):
         self.game_over_font = pygame.font.Font("freesansbold.ttf", 80)
         self.restart_font = pygame.font.Font("freesansbold.ttf", 20)
 
-        return self._get_coord_state()
+        if self.capture:
+            if self.state_rep == "coord":
+                return self._get_coord_state()
+            elif self.state_rep == "pixel":
+                return self._get_pixel_state()
 
     def step(self, action):
         """
@@ -150,13 +157,16 @@ class DuetGame(gym.Env):
 
         state = None
         if self.capture:
-            # state = self._get_pixel_state()
-            state = self._get_coord_state()
+            if self.state_rep == "coord":
+                state = self._get_coord_state()
+            elif self.state_rep == "pixel":
+                state = self._get_pixel_state()
 
         return (state, reward, game_over, {})
 
     def render(self, mode='human', close=False):
         pygame.display.update()
+        pygame.time.delay(10)
 
     def game_loop(self):
         """
@@ -168,8 +178,6 @@ class DuetGame(gym.Env):
         self.i = 1
         self.score = 0
         while not (game_over or quit_game):
-
-            pygame.time.delay(10)
 
             _, _, game_over, _ = self.step(action=None)
 
@@ -236,7 +244,7 @@ class DuetGame(gym.Env):
             obs_2 = current_obstacle_set[1]
             left, right = obs_2.x_span()
             top, bottom = obs_2.get_top(), obs_2.get_bottom()
-            obs_1_coords = [top, bottom, left, right]
+            obs_2_coords = [top, bottom, left, right]
 
         coords = np.array([blue_x, blue_y, red_x, red_y] + obs_1_coords + obs_2_coords)
 

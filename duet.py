@@ -20,7 +20,7 @@ def main():
     while not quit_game:
         os.system("clear")
         game = gym.make("duet-v0")
-        game.man_init(args.mode, capture=False)
+        game.man_init(mode=args.mode, capture=False)
         quit_game = game.game_loop()
 
     pygame.quit()

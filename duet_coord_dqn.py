@@ -66,23 +66,21 @@ if __name__ == "__main__":
 
     # Get the environment and extract the number of actions.
     env = gym.make('duet-v0')
+    env.man_init(state_rep="coord")  # use coordinate state representation instead of pixels
     nb_actions = env.nb_actions()
 
+    # Build the network
     model = build_model(nb_actions)
 
-    # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
-    # even the metrics!
+    # Initialize the memory and state processor
     memory = SequentialMemory(limit=500000, window_length=WINDOW_LENGTH)
     processor = DuetProcessor()
 
-    # Select a policy. We use eps-greedy action selection, which means that a random action is selected
-    # with probability eps. We anneal eps from 1.0 to 0.1 over the course of 1M steps. This is done so that
-    # the agent initially explores the environment (high eps) and then gradually sticks to what it knows
-    # (low eps). We also set a dedicated eps value that is used during testing. Note that we set it to 0.05
-    # so that the agent still performs some random actions. This ensures that the agent cannot get stuck.
+    # Choose policy
     policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=.05,
-                                  nb_steps=10000)
+                                  nb_steps=100000)
 
+    # Compile the agent
     dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
                    processor=processor, nb_steps_warmup=50000, gamma=.99, target_model_update=10000,
                    train_interval=4, delta_clip=1.)
@@ -101,9 +99,9 @@ if __name__ == "__main__":
         checkpoint_weights_filename = 'weights/dqn_duet_weights_{step}.h5f'
         log_filename = 'log/dqn_duet_log.json'
 
-        callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=250000)]
+        callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=25000)]
         callbacks += [FileLogger(log_filename, interval=100)]
-        dqn.fit(env, callbacks=callbacks, nb_steps=1750000, log_interval=10000, visualize=False, action_repetition=5)
+        dqn.fit(env, callbacks=callbacks, nb_steps=1750000, log_interval=10000, visualize=False, action_repetition=20)
 
         # After training is done, we save the final weights one more time.
         dqn.save_weights(weights_filename, overwrite=True)
