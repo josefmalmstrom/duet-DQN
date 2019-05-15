@@ -59,6 +59,12 @@ def build_model(nb_actions):
 
 if __name__ == "__main__":
 
+    ANNEAL_STEPS = 1e6
+    WARMUP_STEPS = 50e3
+
+    START_EPS = 1.0
+    END_EPS = 0.1
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices=['train', 'test'], default='train')
     parser.add_argument('--weights', type=str, default=None)
@@ -76,15 +82,20 @@ if __name__ == "__main__":
     memory = SequentialMemory(limit=500000, window_length=WINDOW_LENGTH)
     processor = DuetProcessor()
 
+    # If starting from weights, reconfigure paramaters
+    if args.weights is not None:
+        START_EPS = 0.1
+        WARMUP_STEPS = 10e3
+
     # Choose policy
-    policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=.05,
-                                  nb_steps=100000)
+    policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=START_EPS, value_min=END_EPS, value_test=.05,
+                                  nb_steps=ANNEAL_STEPS)
 
     # Compile the agent
     dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
-                   processor=processor, nb_steps_warmup=50000, gamma=.99, target_model_update=10000,
+                   processor=processor, nb_steps_warmup=WARMUP_STEPS, gamma=.99, target_model_update=10000,
                    train_interval=4, delta_clip=1.)
-    dqn.compile(Adam(lr=.00025), metrics=['mae'])
+    dqn.compile(Adam(lr=.0025), metrics=['mae'])
 
     if args.mode == 'train':
 
