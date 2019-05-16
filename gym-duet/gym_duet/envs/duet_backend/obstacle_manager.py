@@ -29,7 +29,7 @@ class ObstacleManager(object):
 
     def __init__(self):
 
-        # random.seed(221)  # for deterministic sequence
+        random.seed(221)  # for deterministic sequence
 
         self.obstacles = []
 
