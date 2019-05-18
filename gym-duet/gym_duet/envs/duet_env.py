@@ -229,14 +229,19 @@ class DuetGame(gym.Env):
         """
 
         blue_x, blue_y = self.blue_ball.position()
+        blue_x = float(blue_x)/BOARD_WIDTH
+        blue_y = float(blue_y)/BOARD_HEIGHT
+
         red_x, red_y = self.red_ball.position()
+        red_x = float(red_x)/BOARD_WIDTH
+        red_y = float(red_y)/BOARD_HEIGHT
 
         current_obstacle_set = self.obstacle_manager.oldest_obstacle_set()
 
         obs_1 = current_obstacle_set[0]
         left, right = obs_1.x_span()
         top, bottom = obs_1.get_top(), obs_1.get_bottom()
-        obs_1_coords = [top, bottom, left, right]
+        obs_1_coords = [float(top)/BOARD_HEIGHT, float(bottom)/BOARD_HEIGHT, float(left)/BOARD_WIDTH, float(right)/BOARD_WIDTH]
 
         if len(current_obstacle_set) == 1:
             obs_2_coords = [0, 0, 0, 0]
@@ -244,7 +249,7 @@ class DuetGame(gym.Env):
             obs_2 = current_obstacle_set[1]
             left, right = obs_2.x_span()
             top, bottom = obs_2.get_top(), obs_2.get_bottom()
-            obs_2_coords = [top, bottom, left, right]
+            obs_2_coords = [float(top)/BOARD_HEIGHT, float(bottom)/BOARD_HEIGHT, float(left)/BOARD_WIDTH, float(right)/BOARD_WIDTH]
 
         coords = np.array([blue_x, blue_y, red_x, red_y] + obs_1_coords + obs_2_coords)
 

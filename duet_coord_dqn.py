@@ -10,7 +10,7 @@ from keras.optimizers import Adam
 import keras.backend as K
 
 from rl.agents.dqn import DQNAgent
-from rl.policy import LinearAnnealedPolicy, EpsGreedyQPolicy
+from rl.policy import LinearAnnealedPolicy, EpsGreedyQPolicy, BoltzmannQPolicy
 from rl.memory import SequentialMemory
 from rl.core import Processor
 from rl.callbacks import FileLogger, ModelIntervalCheckpoint
@@ -29,8 +29,10 @@ class DuetProcessor(Processor):
         """
         Processes one observation of the state (1D coord array)
         """
+
         assert observation.shape == INPUT_SHAPE
-        return observation.astype('uint8')  # saves storage in experience memory
+
+        return observation
 
     def process_state_batch(self, batch):
 
@@ -47,7 +49,9 @@ def build_model(nb_actions):
     model = Sequential()
 
     model.add(Flatten(input_shape=input_shape))
-    model.add(Dense(512))
+    model.add(Dense(256))
+    model.add(Activation('relu'))
+    model.add(Dense(128))
     model.add(Activation('relu'))
     model.add(Dense(nb_actions))
     model.add(Activation('linear'))
@@ -79,7 +83,7 @@ if __name__ == "__main__":
     model = build_model(nb_actions)
 
     # Initialize the memory and state processor
-    memory = SequentialMemory(limit=500000, window_length=WINDOW_LENGTH)
+    memory = SequentialMemory(limit=1e6, window_length=WINDOW_LENGTH)
     processor = DuetProcessor()
 
     # If starting from weights, reconfigure paramaters
@@ -94,8 +98,8 @@ if __name__ == "__main__":
     # Compile the agent
     dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
                    processor=processor, nb_steps_warmup=WARMUP_STEPS, gamma=.99, target_model_update=10000,
-                   train_interval=4, delta_clip=1.)
-    dqn.compile(Adam(lr=.0025), metrics=['mae'])
+                   train_interval=4, delta_clip=1., batch_size=128)
+    dqn.compile(Adam(lr=2.5e-4), metrics=['mae'])
 
     if args.mode == 'train':
 
@@ -111,9 +115,9 @@ if __name__ == "__main__":
         checkpoint_weights_filename = 'weights/dqn_duet_weights_{step}.h5f'
         log_filename = 'log/dqn_duet_log.json'
 
-        callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=25000)]
+        callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=100e3)]
         callbacks += [FileLogger(log_filename, interval=100)]
-        dqn.fit(env, callbacks=callbacks, nb_steps=1750000, log_interval=10000, visualize=False, action_repetition=20)
+        dqn.fit(env, callbacks=callbacks, nb_steps=50e6, log_interval=10000, visualize=False, action_repetition=20)
 
         # After training is done, we save the final weights one more time.
         dqn.save_weights(weights_filename, overwrite=True)
