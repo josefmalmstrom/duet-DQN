@@ -98,7 +98,7 @@ if __name__ == "__main__":
     # Compile the agent
     dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
                    processor=processor, nb_steps_warmup=WARMUP_STEPS, gamma=.99, target_model_update=10000,
-                   train_interval=4, delta_clip=1., batch_size=128)
+                   train_interval=4, delta_clip=1., batch_size=128, enable_double_dqn=True)
     dqn.compile(Adam(lr=2.5e-4), metrics=['mae'])
 
     if args.mode == 'train':
