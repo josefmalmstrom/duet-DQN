@@ -27,3 +27,7 @@ To run DQN training on gcloud:
 xvfb-run -s "-screen 0 1600x900x16" -a /home/josefmal/duet-venv/bin/python duet_dqn.py
 
 ```
+To download files from gcloud:
+```
+gcloud compute scp --recurse josef.malmstrom@duet-machine-vm:/home/josefmal/duet-game-AI/weights . --zone "us-west1-b"
+```
