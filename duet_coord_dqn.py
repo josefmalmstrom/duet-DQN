@@ -83,7 +83,7 @@ if __name__ == "__main__":
     model = build_model(nb_actions)
 
     # Initialize the memory and state processor
-    memory = SequentialMemory(limit=1e6, window_length=WINDOW_LENGTH)
+    memory = SequentialMemory(limit=int(1e6), window_length=WINDOW_LENGTH)
     processor = DuetProcessor()
 
     # If starting from weights, reconfigure paramaters
