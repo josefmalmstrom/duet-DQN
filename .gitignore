@@ -2,3 +2,5 @@ __pycache__/
 *.json
 *.h5f
 *.pdf
+*.pkl
+log
