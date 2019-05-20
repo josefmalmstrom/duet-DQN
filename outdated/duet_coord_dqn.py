@@ -16,7 +16,7 @@ from rl.callbacks import FileLogger, ModelIntervalCheckpoint
 from keras.callbacks import TensorBoard
 
 import gym
-import gym_duet
+# import gym_duet
 
 
 INPUT_SHAPE = (12,)
@@ -75,15 +75,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Get the environment and extract the number of actions.
-    env = gym.make('duet-v0')
-    env.man_init(state_rep="coord")  # use coordinate state representation instead of pixels
+    env = gym.make('Duet-v0')
+    env.man_init(state_rep="coord", random_obstacles=True)
     nb_actions = env.nb_actions()
 
     # Build the network
     model = build_model(nb_actions)
 
     # Initialize the memory and state processor
-    memory = SequentialMemory(limit=int(1e6), window_length=WINDOW_LENGTH)
+    memory = SequentialMemory(limit=int(100e3), window_length=WINDOW_LENGTH)
     processor = DuetProcessor()
 
     # If starting from weights, reconfigure paramaters
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     # Compile the agent
     dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
                    processor=processor, nb_steps_warmup=WARMUP_STEPS, gamma=.99, target_model_update=10000,
-                   train_interval=4, delta_clip=1., batch_size=128, enable_double_dqn=True)
+                   train_interval=4, delta_clip=1., batch_size=32, enable_double_dqn=True)
     adam = Adam(lr=2.5e-4)
     dqn.compile(adam, metrics=['mae'])
 
@@ -118,13 +118,15 @@ if __name__ == "__main__":
 
         callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=100e3)]
         callbacks += [FileLogger(log_filename, interval=100)]
-        callbacks += [TensorBoard("log/", write_grads=True, histogram_freq=1)]
-        dqn.fit(env, callbacks=callbacks, nb_steps=50e6, log_interval=10000, visualize=False, action_repetition=20)
+        callbacks += [TensorBoard("log/")]
+        dqn.fit(env, callbacks=callbacks, nb_steps=50e6, log_interval=10000, visualize=False)
 
         # After training is done, we save the final weights one more time.
         dqn.save_weights(weights_filename, overwrite=True)
 
         # Finally, evaluate our algorithm for 10 episodes.
+        env = gym.make('Duet-v0')
+        env.man_init(state_rep="coord", n_repeat_action=20, random_obstacles=True)
         dqn.test(env, nb_episodes=10, visualize=True)
 
     elif args.mode == 'test':
@@ -132,4 +134,6 @@ if __name__ == "__main__":
         if args.weights:
             weights_filename = args.weights
         dqn.load_weights(weights_filename)
+        env = gym.make('Duet-v0')
+        env.man_init(state_rep="coord", n_repeat_action=20, random_obstacles=True)
         dqn.test(env, nb_episodes=10, visualize=True)

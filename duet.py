@@ -2,7 +2,7 @@ import argparse
 import os
 
 import gym
-import gym_duet
+# import gym_duet
 
 import contextlib
 with contextlib.redirect_stdout(None):
@@ -19,8 +19,8 @@ def main():
     quit_game = False
     while not quit_game:
         os.system("clear")
-        game = gym.make("duet-v0")
-        game.man_init(mode=args.mode, capture=False)
+        game = gym.make("Duet-v0")
+        game.man_init(mode=args.mode, capture=False, n_repeat_action=1)
         quit_game = game.game_loop()
 
     pygame.quit()

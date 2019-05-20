@@ -17,7 +17,6 @@ from rl.core import Processor
 from rl.callbacks import FileLogger, ModelIntervalCheckpoint
 
 import gym
-import gym_duet
 
 
 INPUT_SHAPE = (84, 84)
@@ -31,7 +30,9 @@ class DuetProcessor(Processor):
         Processes one observation of the state (2D pixel array)
         """
         img = Image.fromarray(observation)
-        img = img.convert('L').resize((84, 84))  # resize and convert to grayscale
+        img = img.convert('L')  # convert to grayscale
+
+        img.save("test.jpg")
 
         processed_observation = np.array(img)
 
@@ -88,7 +89,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Get the environment and extract the number of actions.
-    env = gym.make('duet-v0')
+    env = gym.make('Duet-v0')
+    env.man_init(state_rep="pixel", random_obstacles=True)
     nb_actions = env.nb_actions()
 
     model = build_model(nb_actions)
@@ -127,12 +129,14 @@ if __name__ == "__main__":
 
         callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=250000)]
         callbacks += [FileLogger(log_filename, interval=100)]
-        dqn.fit(env, callbacks=callbacks, nb_steps=1750000, log_interval=10000, visualize=False, action_repetition=5)
+        dqn.fit(env, callbacks=callbacks, nb_steps=50000000, log_interval=10000, visualize=False, action_repetition=20)
 
         # After training is done, we save the final weights one more time.
         dqn.save_weights(weights_filename, overwrite=True)
 
         # Finally, evaluate our algorithm for 10 episodes.
+        env = gym.make('Duet-v0')
+        env.man_init(state_rep="pixel", n_repeat_action=20, random_obstacles=True)
         dqn.test(env, nb_episodes=10, visualize=True)
 
     elif args.mode == 'test':
@@ -140,4 +144,6 @@ if __name__ == "__main__":
         if args.weights:
             weights_filename = args.weights
         dqn.load_weights(weights_filename)
+        env = gym.make('Duet-v0')
+        env.man_init(state_rep="pixel", n_repeat_action=20, random_obstacles=True)
         dqn.test(env, nb_episodes=10, visualize=True)
