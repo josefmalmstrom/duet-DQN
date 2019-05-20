@@ -32,8 +32,6 @@ class DuetProcessor(Processor):
         img = Image.fromarray(observation)
         img = img.convert('L')  # convert to grayscale
 
-        img.save("test.jpg")
-
         processed_observation = np.array(img)
 
         assert processed_observation.shape == INPUT_SHAPE
@@ -127,7 +125,7 @@ if __name__ == "__main__":
         checkpoint_weights_filename = 'weights/dqn_duet_weights_{step}.h5f'
         log_filename = 'log/dqn_duet_log.json'
 
-        callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=250000)]
+        callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=500000)]
         callbacks += [FileLogger(log_filename, interval=100)]
         dqn.fit(env, callbacks=callbacks, nb_steps=50000000, log_interval=10000, visualize=False, action_repetition=20)
 
