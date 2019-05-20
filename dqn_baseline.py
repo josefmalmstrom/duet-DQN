@@ -27,7 +27,7 @@ def main():
                 tensorboard_log="log/",
                 full_tensorboard_log=False)
 
-    model.learn(total_timesteps=1000)
+    model.learn(total_timesteps=50000000)
 
     model.save("weights/duet_baseline")
 
