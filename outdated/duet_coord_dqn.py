@@ -7,13 +7,13 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
 from keras.optimizers import Adam
-import keras.backend as K
 
 from rl.agents.dqn import DQNAgent
-from rl.policy import LinearAnnealedPolicy, EpsGreedyQPolicy, BoltzmannQPolicy
+from rl.policy import LinearAnnealedPolicy, EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 from rl.core import Processor
 from rl.callbacks import FileLogger, ModelIntervalCheckpoint
+from keras.callbacks import TensorBoard
 
 import gym
 import gym_duet
@@ -99,7 +99,8 @@ if __name__ == "__main__":
     dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
                    processor=processor, nb_steps_warmup=WARMUP_STEPS, gamma=.99, target_model_update=10000,
                    train_interval=4, delta_clip=1., batch_size=128, enable_double_dqn=True)
-    dqn.compile(Adam(lr=2.5e-4), metrics=['mae'])
+    adam = Adam(lr=2.5e-4)
+    dqn.compile(adam, metrics=['mae'])
 
     if args.mode == 'train':
 
@@ -117,6 +118,7 @@ if __name__ == "__main__":
 
         callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=100e3)]
         callbacks += [FileLogger(log_filename, interval=100)]
+        callbacks += [TensorBoard("log/", write_grads=True, histogram_freq=1)]
         dqn.fit(env, callbacks=callbacks, nb_steps=50e6, log_interval=10000, visualize=False, action_repetition=20)
 
         # After training is done, we save the final weights one more time.

@@ -4,3 +4,4 @@ gym
 keras-rl
 tensorflow
 Pillow
+matplotlib
