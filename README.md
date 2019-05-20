@@ -37,3 +37,6 @@ Path to gym environments:
 /home/josefmal/venvs/duet-venv/lib/python3.6/site-packages/gym/envs
 
 ```
+
+Follow instructions here to register a custom gym environment:
+https://github.com/openai/gym/wiki/Environments
