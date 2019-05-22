@@ -48,9 +48,9 @@ def build_model(nb_actions):
     model = Sequential()
 
     model.add(Flatten(input_shape=input_shape))
-    model.add(Dense(128))
+    model.add(Dense(64))
     model.add(Activation('relu'))
-    model.add(Dense(128))
+    model.add(Dense(64))
     model.add(Activation('relu'))
     model.add(Dense(nb_actions))
     model.add(Activation('linear'))
