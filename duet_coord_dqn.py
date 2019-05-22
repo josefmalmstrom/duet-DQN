@@ -16,10 +16,9 @@ from rl.callbacks import FileLogger, ModelIntervalCheckpoint
 from keras.callbacks import TensorBoard
 
 import gym
-# import gym_duet
 
 
-INPUT_SHAPE = (12,)
+INPUT_SHAPE = (20,)
 WINDOW_LENGTH = 4
 
 
@@ -49,7 +48,7 @@ def build_model(nb_actions):
     model = Sequential()
 
     model.add(Flatten(input_shape=input_shape))
-    model.add(Dense(256))
+    model.add(Dense(128))
     model.add(Activation('relu'))
     model.add(Dense(128))
     model.add(Activation('relu'))
@@ -135,5 +134,5 @@ if __name__ == "__main__":
             weights_filename = args.weights
         dqn.load_weights(weights_filename)
         env = gym.make('Duet-v0')
-        env.man_init(state_rep="coord", n_repeat_action=20, random_obstacles=True)
+        env.man_init(state_rep="coord", n_repeat_action=20, random_obstacles=False)
         dqn.test(env, nb_episodes=10, visualize=True)

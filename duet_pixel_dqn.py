@@ -143,5 +143,5 @@ if __name__ == "__main__":
             weights_filename = args.weights
         dqn.load_weights(weights_filename)
         env = gym.make('Duet-v0')
-        env.man_init(state_rep="pixel", n_repeat_action=20, random_obstacles=True)
+        env.man_init(state_rep="pixel", n_repeat_action=20, random_obstacles=True, draw_rects=True)
         dqn.test(env, nb_episodes=10, visualize=True)
