@@ -3,6 +3,9 @@ import json
 
 import matplotlib.pyplot as plt
 
+name_dict = {"episode_reward": "episode reward",
+             "mean_q": "mean Q-value"}
+
 
 def visualize_log(filename, figsize=None, output=None):
     with open(filename, 'r') as f:
@@ -14,18 +17,13 @@ def visualize_log(filename, figsize=None, output=None):
     # Get value keys. The x axis is shared and is the number of episodes.
     keys = sorted(list(set(data.keys()).difference(set(['episode']))))
 
-    if figsize is None:
-        figsize = (15., 5. * len(keys))
-    f, axarr = plt.subplots(len(keys), sharex=True, figsize=figsize)
     for idx, key in enumerate(keys):
-        axarr[idx].plot(episodes, data[key])
-        axarr[idx].set_ylabel(key)
-    plt.xlabel('episodes')
-    plt.tight_layout()
-    if output is None:
-        plt.show()
-    else:
-        plt.savefig(output)
+        if key in name_dict.keys():
+            plt.figure(figsize=(15.0, 5.0))
+            plt.plot(episodes, data[key])
+            plt.xlabel('training episodes')
+            plt.ylabel(name_dict[key])
+            plt.savefig(output + name_dict[key] + ".pdf")
 
 
 parser = argparse.ArgumentParser()
