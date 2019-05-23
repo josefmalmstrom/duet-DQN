@@ -2,7 +2,7 @@
 
 Using [keras-rl](https://github.com/keras-rl/keras-rl) to train DQN agents on [gym-duet](https://github.com/josefmal/gym-duet), an Open-AI gym implementation of the popular mobile game Duet, by Kumobius, available [here](https://www.duetgame.com/).  
 
-![](assets/duet.gif)
+<img src="/assets/duet.gif?raw=true" width="200">
 
 ## Installation
 
