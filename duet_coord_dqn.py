@@ -18,7 +18,7 @@ from keras.callbacks import TensorBoard
 import gym
 
 
-INPUT_SHAPE = (20,)
+INPUT_SHAPE = (12,)
 WINDOW_LENGTH = 4
 
 
@@ -134,5 +134,5 @@ if __name__ == "__main__":
             weights_filename = args.weights
         dqn.load_weights(weights_filename)
         env = gym.make('Duet-v0')
-        env.man_init(state_rep="coord", n_repeat_action=20, random_obstacles=False)
+        env.man_init(state_rep="coord", n_repeat_action=20, random_obstacles=False, visualize=True)
         dqn.test(env, nb_episodes=10, visualize=True)

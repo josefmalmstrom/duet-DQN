@@ -32,6 +32,8 @@ class DuetProcessor(Processor):
         img = Image.fromarray(observation)
         img = img.convert('L')  # convert to grayscale
 
+        img.save("image_state_example.png")
+
         processed_observation = np.array(img)
 
         assert processed_observation.shape == INPUT_SHAPE
