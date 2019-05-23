@@ -1,26 +1,38 @@
-# Duet - A popular mobile game implemented in Python
+# Duet DQN - Applying Deep Q-learning to a popular mobile game
 
-This is a mockup version of the game Duet by Kumobius, available [here](https://www.duetgame.com/).
+Using [keras-rl](https://github.com/keras-rl/keras-rl) to train DQN agents on [gym-duet](https://github.com/josefmal/gym-duet), an Open-AI gym implementation of the popular mobile game Duet, by Kumobius, available [here](https://www.duetgame.com/).
 
-## Getting started
+## Installation
 
-The game is written for Python 3.5. Install the game by cloning this repository
+The code is written for Python 3.5. To get started, first install [gym-duet](https://github.com/josefmal/gym-duet).
+
+Then clone this repo:
 ```
 git clone https://github.com/josefmal/duet-game-AI.git
 ```
-Install the requirements
+And install the requirements
 ```
 pip install -r requirements.txt
 ```
-Install the gym-duet module
-```
-cd gym-duet
-pip install -e .
-```
-Start the game by running
+
+## Usage
+Play the game manually by running:
 ```
 python duet.py
 ```
+Train a DQN agent on a coordinate representation of the state by using the script ```duet_coord_dqn.py```. Display its options by running:
+```
+python duet_coord_dqn.py -h
+```
+
+Train a DQN agent on a pixel representation of the state by using the script ```duet_pixel_dqn.py```. Display its options by running:
+```
+python duet_pixel_dqn.py -h
+```
+
+
+
+To be removed:
 
 To run DQN training on gcloud:
 ```
