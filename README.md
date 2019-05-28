@@ -30,26 +30,3 @@ Train a DQN agent on a pixel representation of the state by using the script ```
 ```
 python duet_pixel_dqn.py -h
 ```
-
-
-
-To be removed:
-
-To run DQN training on gcloud:
-```
-xvfb-run -s "-screen 0 1600x900x16" -a /home/josefmal/duet-venv/bin/python duet_dqn.py
-
-```
-To download files from gcloud:
-```
-gcloud compute scp --recurse josef.malmstrom@duet-machine-vm:/home/josefmal/duet-game-AI/weights . --zone "us-west1-b"
-```
-
-Path to gym environments:
-``` 
-/home/josefmal/venvs/duet-venv/lib/python3.6/site-packages/gym/envs
-
-```
-
-Follow instructions here to register a custom gym environment:
-https://github.com/openai/gym/wiki/Environments
